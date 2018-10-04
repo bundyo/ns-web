@@ -1,0 +1,38 @@
+{
+  "name": "ns-web",
+  "description": "NativeScript for Web",
+  "version": "1.0.0",
+  "author": "Bundyo, Marto and TJ",
+  "license": "Apache 2.0",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
+    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
+  },
+  "dependencies": {
+    "@vue/web-component-wrapper": "^1.2.0",
+    "bootstrap-vue": "^2.0.0-rc.9",
+    "html-webpack-plugin": "3.2.0",
+    "node-sass": "^4.9.3",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.0",
+    "vue": "^2.5.17"
+  },
+  "browserslist": [
+    "last 1 versions"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "babel-loader": "^8.0.4",
+    "babel-preset-env": "^7.0.0-beta.3",
+    "cross-env": "^5.2.0",
+    "css-loader": "^1.0.0",
+    "css-hot-loader": "^1.4.2",
+    "file-loader": "^2.0.0",
+    "vue-loader": "^15.4.2",
+    "vue-template-compiler": "^2.5.17",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "3.1.9"
+  }
+}

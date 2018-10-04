@@ -1,0 +1,19 @@
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+.idea
+.cloud
+.project
+dist/
+lib/
+tmp/
+typings/
+
+# Visual Studio Code
+.vscode/
+
+# NPM
+node_modules
+.package-lock.json
+npm-debug.log
