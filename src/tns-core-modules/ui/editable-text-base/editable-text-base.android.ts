@@ -10,7 +10,7 @@ import { ad } from "../../utils/utils";
 export * from "./editable-text-base-common";
 
 //https://github.com/NativeScript/NativeScript/issues/2942
-export let dismissKeyboardTimeoutId: NodeJS.Timer;
+export let dismissKeyboardTimeoutId: number;
 export let dismissKeyboardOwner: WeakRef<EditableTextBase>;
 
 interface EditTextListeners extends android.text.TextWatcher, android.view.View.OnFocusChangeListener, android.widget.TextView.OnEditorActionListener {

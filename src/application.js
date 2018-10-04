@@ -1,6 +1,6 @@
 const utils = require("./utils"),
     Class = utils.Class,
-    req = require.context("../../app", true, /\.(js|xml|html|css)$/),
+    req = require.context("../app", true, /\.(js|xml|html|css)$/),
     tagRegExp = /(<\/?)((?!\?|\\|!|au-)\S*?)(\s|>)/g,
     selfClosingRegExp = /<([^\s/>]+?)(\s[^>]*?)\/>|<([\w:-]+?)\/>/g,
     modules = [],

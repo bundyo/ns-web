@@ -1,6 +1,6 @@
-var appModule = require("./application-common");
+var appModule = require("../tns-core-modules/application/application-common");
 var observable = require("data/observable");
-var webApp = require("../../tns/application");
+var webApp = require("../application");
 var Frame = require("ui/frame").Frame;
 var trace = require("trace");
 
