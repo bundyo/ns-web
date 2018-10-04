@@ -7,7 +7,7 @@ import { StackLayout } from "../layouts/stack-layout";
 import { ProxyViewContainer } from "../proxy-view-container";
 import { profile } from "../../profiling";
 import * as trace from "../../trace";
-import { ios as iosUtils } from "../../utils/utils";
+import { ios as iosUtils } from "../../utils";
 
 export * from "./list-view-common";
 

@@ -1,6 +1,6 @@
 ﻿import { ScrollEventData } from ".";
 import { View, layout, ScrollViewBase, scrollBarIndicatorVisibleProperty } from "./scroll-view-common";
-import { ios as iosUtils } from "../../utils/utils";
+import { ios as iosUtils } from "../../utils";
 // HACK: Webpack. Use a fully-qualified import to allow resolve.extensions(.ios.js) to
 // kick in. `../utils` doesn't seem to trigger the webpack extensions mechanism.
 import * as uiUtils from "../utils";

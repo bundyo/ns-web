@@ -1,7 +1,7 @@
 import { View } from "../core/view";
 import { LinearGradient } from "./linear-gradient";
 
-import { isDataURI, isFileOrResourcePath, layout, RESOURCE_PREFIX, FILE_PREFIX } from "../../utils/utils";
+import { isDataURI, isFileOrResourcePath, layout, RESOURCE_PREFIX, FILE_PREFIX } from "../../utils";
 import { parse } from "../../css-value";
 import { path, knownFolders } from "../../file-system";
 import * as application from "../../application";

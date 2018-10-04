@@ -1,5 +1,5 @@
 /**
- * @module "utils/utils"
+ * @module "utils"
  */ /** */
 
 import { dip, px } from "../ui/core/view";

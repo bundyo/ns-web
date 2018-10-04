@@ -7,13 +7,13 @@ import {
     Transformation,
     TransformationValue,
     TransformFunctionsInfo,
-} from "../animation/animation";
+} from "../animation";
 
 import { dip, px, percent } from "../core/view";
 
 import { Color } from "../../color";
 import { Font, parseFont, FontStyle, FontWeight } from "../../ui/styling/font";
-import { layout, hasDuplicates } from "../../utils/utils";
+import { layout, hasDuplicates } from "../../utils";
 import { Background } from "../../ui/styling/background";
 import { isIOS } from "../../platform";
 

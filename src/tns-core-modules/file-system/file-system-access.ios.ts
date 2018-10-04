@@ -1,5 +1,5 @@
 ﻿import { encoding as textEncoding } from "../text";
-import { ios } from "../utils/utils";
+import { ios } from "../utils";
 
 // TODO: Implement all the APIs receiving callback using async blocks
 // TODO: Check whether we need try/catch blocks for the iOS implementation

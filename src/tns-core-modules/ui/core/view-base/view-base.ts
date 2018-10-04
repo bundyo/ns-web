@@ -8,7 +8,7 @@ import { Property, CssProperty, CssAnimationProperty, InheritedProperty, Style, 
 import { Source } from "../../../utils/debug";
 import { Binding, BindingOptions, Observable, WrappedValue, PropertyChangeData, traceEnabled, traceWrite, traceCategories } from "../bindable";
 import { isIOS, isAndroid } from "../../../platform";
-import { layout } from "../../../utils/utils";
+import { layout } from "../../../utils";
 import { Length, paddingTopProperty, paddingRightProperty, paddingBottomProperty, paddingLeftProperty } from "../../styling/style-properties";
 
 // TODO: Remove this import!

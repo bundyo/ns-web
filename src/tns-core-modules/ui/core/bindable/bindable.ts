@@ -5,7 +5,7 @@ import { unsetValue } from "../properties";
 import { Observable, WrappedValue, PropertyChangeData, EventData } from "../../../data/observable";
 import { addWeakEventListener, removeWeakEventListener } from "../weak-event-listener";
 import { bindingConstants, parentsRegex } from "../../builder/binding-builder";
-import { escapeRegexSymbols } from "../../../utils/utils";
+import { escapeRegexSymbols } from "../../../utils";
 import {
     isEnabled as traceEnabled,
     write as traceWrite,

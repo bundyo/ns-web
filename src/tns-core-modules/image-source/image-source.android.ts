@@ -5,7 +5,7 @@ import * as httpModule from "../http";
 
 // Types.
 import { path as fsPath, knownFolders } from "../file-system";
-import { isFileOrResourcePath, RESOURCE_PREFIX } from "../utils/utils";
+import { isFileOrResourcePath, RESOURCE_PREFIX } from "../utils";
 import { getNativeApplication } from "../application";
 
 export { isFileOrResourcePath };

@@ -1,7 +1,7 @@
 import { IOSActionItemSettings, ActionItem as ActionItemDefinition } from ".";
 import { ActionItemBase, ActionBarBase, isVisible, View, colorProperty, backgroundColorProperty, backgroundInternalProperty, flatProperty, layout, Color } from "./action-bar-common";
 import { ImageSource, fromFileOrResource } from "../../image-source";
-import { ios as iosUtils } from "../../utils/utils";
+import { ios as iosUtils } from "../../utils";
 
 export * from "./action-bar-common";
 

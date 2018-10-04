@@ -2,7 +2,7 @@
 import { isEnabled as traceEnabled, write as traceWrite, categories as traceCategories, messageType as traceMessageType } from "../../trace";
 import { device } from "../../platform"
 import * as fs from "../../file-system";
-import * as utils from "../../utils/utils";
+import * as utils from "../../utils";
 export * from "./font-common";
 
 const EMULATE_OBLIQUE = true;

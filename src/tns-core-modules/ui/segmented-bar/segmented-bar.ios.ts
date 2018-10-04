@@ -4,7 +4,7 @@ import {
     colorProperty, fontInternalProperty, Color
 } from "./segmented-bar-common";
 
-import { ios } from "../../utils/utils";
+import { ios } from "../../utils";
 
 export * from "./segmented-bar-common";
 

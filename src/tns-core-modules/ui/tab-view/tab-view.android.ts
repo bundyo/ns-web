@@ -10,7 +10,7 @@ import {
 } from "./tab-view-common"
 import { textTransformProperty, TextTransform, getTransformedText } from "../text-base";
 import { fromFileOrResource } from "../../image-source";
-import { RESOURCE_PREFIX, ad } from "../../utils/utils";
+import { RESOURCE_PREFIX, ad } from "../../utils";
 import { Frame } from "../frame";
 
 export * from "./tab-view-common";

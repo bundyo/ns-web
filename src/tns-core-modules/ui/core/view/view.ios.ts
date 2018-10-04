@@ -9,7 +9,7 @@ import {
 } from "./view-common";
 
 import { ios as iosBackground, Background } from "../../styling/background";
-import { ios as iosUtils } from "../../../utils/utils";
+import { ios as iosUtils } from "../../../utils";
 import {
     Visibility,
     visibilityProperty, opacityProperty,

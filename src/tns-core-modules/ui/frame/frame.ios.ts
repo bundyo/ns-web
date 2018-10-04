@@ -7,7 +7,7 @@ import { profile } from "../../profiling";
 import { FrameBase, View, layout, traceEnabled, traceWrite, traceCategories, isCategorySet } from "./frame-common";
 import { _createIOSAnimatedTransitioning } from "./fragment.transitions";
 
-import * as utils from "../../utils/utils";
+import * as utils from "../../utils";
 
 export * from "./frame-common";
 

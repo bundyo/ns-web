@@ -9,7 +9,7 @@ import { isIOS, isAndroid } from "../../../platform";
 
 import { KeyframeAnimation } from "../../animation/keyframe-animation";
 import { Page } from "../../page";
-import { layout } from "../../../utils/utils";
+import { layout } from "../../../utils";
 
 import { Color } from "../../../color";
 import { Order, FlexGrow, FlexShrink, FlexWrapBefore, AlignSelf } from "../../layouts/flexbox-layout";

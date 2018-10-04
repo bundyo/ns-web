@@ -3,7 +3,7 @@ import {
     SearchBarBase, Color, colorProperty, backgroundColorProperty, backgroundInternalProperty, fontInternalProperty,
     textProperty, hintProperty, textFieldHintColorProperty, textFieldBackgroundColorProperty
 } from "./search-bar-common";
-import { ios as iosUtils } from "../../utils/utils";
+import { ios as iosUtils } from "../../utils";
 
 export * from "./search-bar-common";
 
