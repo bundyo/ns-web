@@ -1,5 +1,5 @@
 ﻿/**
- * @module "ui/styling/font"
+ * @module "ui/styling/font_types"
  */ /** */
 
 export class Font {

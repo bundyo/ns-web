@@ -1,4 +1,4 @@
-﻿import { Font as FontDefinition, ParsedFont } from "./font";
+﻿import { Font as FontDefinition, ParsedFont } from "./font_types";
 import { makeValidator, makeParser } from "../core/properties";
 
 export abstract class Font implements FontDefinition {
