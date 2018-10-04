@@ -10,9 +10,6 @@ lib/
 tmp/
 typings/
 
-# Visual Studio Code
-.vscode/
-
 # NPM
 node_modules
 package-lock.json
