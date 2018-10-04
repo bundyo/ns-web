@@ -1,6 +1,6 @@
 <template>
     <div :style="styles">
-        <span :text="currentTitle"></span>
+        <span>{{ currentTitle }}</span>
         <slot></slot>
     </div>
 </template>
