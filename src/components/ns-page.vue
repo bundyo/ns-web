@@ -1,23 +1,24 @@
 <template>
-    <div>
+    <div class="ns-element" :style="styles">
         <slot></slot>
     </div>
 </template>
 
 <script>
+    import { props, styles } from "../consts";
+
     export default {
         name: 'ns-page',
+
         extends: import("./ns-element"),
 
-        props: {
-            msg: String
+        props,
+
+        computed: {
+            styles() {
+                return styles.call(this);
+            },
         }
     }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-    a {
-        color: #42b983;
-    }
-</style>

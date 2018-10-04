@@ -1,17 +1,24 @@
 <template>
-    <div :class="classes">
+    <div :class="classes" :style="styles">
         <slot></slot>
     </div>
 </template>
 
 <script>
+    import { props, styles } from "../consts";
+
     export default {
         name: 'ns-wrap-layout',
+
         extends: import("./ns-element"),
 
-        props: ["orientation"],
+        props: ["orientation"].concat(props),
 
         computed: {
+            styles() {
+                return styles.call(this);
+            },
+
             isVertical() {
                 return this.orientation !== "horizontal";
             },
@@ -26,3 +33,15 @@
         }
     }
 </script>
+
+<style>
+    :host > div {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+    }
+
+    :host > .-vertical {
+        flex-direction: column;
+    }
+</style>

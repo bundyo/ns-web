@@ -1,15 +1,22 @@
 <template>
-    <span>{{ this.currentText }}</span>
+    <span :style="styles">{{ this.currentText }}</span>
 </template>
 
 <script>
+    import { props, styles } from "../consts";
+
     export default {
         name: 'ns-label',
+
         extends: import("./ns-element"),
 
-        props: ["text"],
+        props: ["text"].concat(props),
 
         computed: {
+            styles() {
+                return styles.call(this);
+            },
+
             currentText() {
                 return this.text;
             }
@@ -17,9 +24,8 @@
     }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-    a {
-        color: #42b983;
+<style>
+    :host > span {
+        display: inline-block;
     }
 </style>

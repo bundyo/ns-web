@@ -25,6 +25,9 @@ module.exports = {
                         shadowMode: true
                     }
                 },
+                // {
+                //     loader: MiniCssExtractPlugin.loader,
+                // },
                 'css-loader',
                 {
                     loader: 'postcss-loader',

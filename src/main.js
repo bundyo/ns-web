@@ -1,21 +1,22 @@
 import Vue from 'vue';
 import wrap from '@vue/web-component-wrapper'
-import MyApp from './my-app?shadow';
 
-import NSTemplate from "./components/ns-template?shadow";
-import NSElement from "./components/ns-element?shadow";
-import NSGridLayout from "./components/ns-grid-layout?shadow";
-import NSStackLayout from "./components/ns-stack-layout?shadow";
-import NSWrapLayout from "./components/ns-wrap-layout?shadow";
-import NSAbsoluteLayout from "./components/ns-absolute-layout?shadow";
-import NSImage from "./components/ns-image?shadow";
-import NSActionBar from "./components/ns-action-bar?shadow";
-import NSPage from "./components/ns-page?shadow";
-import NSLabel from "./components/ns-label?shadow";
-import NSButton from "./components/ns-button?shadow";
-import NSNavigationButton from "./components/ns-navigation-button?shadow";
-import NSActionItem from "./components/ns-action-item?shadow";
-import NSScrollView from "./components/ns-scroll-view?shadow";
+import MyApp from './my-app';
+
+import NSTemplate from "./components/ns-template";
+import NSElement from "./components/ns-element";
+import NSGridLayout from "./components/ns-grid-layout";
+import NSStackLayout from "./components/ns-stack-layout";
+import NSWrapLayout from "./components/ns-wrap-layout";
+import NSAbsoluteLayout from "./components/ns-absolute-layout";
+import NSImage from "./components/ns-image";
+import NSActionBar from "./components/ns-action-bar";
+import NSPage from "./components/ns-page";
+import NSLabel from "./components/ns-label";
+import NSButton from "./components/ns-button";
+import NSNavigationButton from "./components/ns-navigation-button";
+import NSActionItem from "./components/ns-action-item";
+import NSScrollView from "./components/ns-scroll-view";
 
 window.customElements.define(NSTemplate.name, wrap(Vue, NSTemplate));
 window.customElements.define(NSElement.name, wrap(Vue, NSElement));
@@ -34,4 +35,4 @@ window.customElements.define(NSScrollView.name, wrap(Vue, NSScrollView));
 
 Vue.config.productionTip = false;
 
-window.customElements.define("my-app", wrap(Vue, MyApp));
+window.customElements.define(MyApp.name, wrap(Vue, MyApp));
