@@ -28,7 +28,7 @@
         position: relative;
     }
 
-    :host > div > * {
+    ::slotted(*) {
         position: absolute;
     }
 </style>
