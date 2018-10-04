@@ -30,7 +30,7 @@
     "css-loader": "^1.0.0",
     "file-loader": "^2.0.0",
     "tns-platform-declarations": "^4.3.0-2018-10-03-163950-01",
-    "typescript": "^3.1.1",
+    "typescript": "^2.6.1",
     "vue-loader": "^15.4.2",
     "vue-template-compiler": "^2.5.17",
     "webpack": "^4.20.2",
