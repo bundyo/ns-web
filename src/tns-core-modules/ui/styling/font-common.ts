@@ -68,7 +68,7 @@ export namespace FontWeight {
     export const EXTRA_BOLD: "800" = "800";
     export const BLACK: "900" = "900";
     export const isValid = makeValidator<FontWeight>(THIN, EXTRA_LIGHT, LIGHT, NORMAL, "400", MEDIUM, SEMI_BOLD, BOLD, "700", EXTRA_BOLD, BLACK);
-    export const parse = makeParser<FontStyle>(isValid);
+    export const parse = makeParser<FontWeight>(isValid);
 }
 
 export function parseFontFamily(value: string): Array<string> {
