@@ -70,7 +70,7 @@ export default class NSElement extends HyperHTMLElement {
         const styles = {};
 
         Object.values(this.attributes).forEach(v => {
-            v.nodeValue && (styles[v.nodeName] = typeof isNaN(parseFloat(v.nodeValue))
+            v.nodeValue && (styles[v.nodeName] = !isNaN(parseFloat(v.nodeValue))
                 ? v.nodeValue + "px"
                 : v.nodeValue);
         });
