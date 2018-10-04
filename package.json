@@ -22,6 +22,7 @@
     "last 1 versions"
   ],
   "devDependencies": {
+    "autoprefixer": "^9.1.5",
     "@babel/core": "^7.1.2",
     "babel-loader": "^8.0.4",
     "babel-preset-env": "^7.0.0-beta.3",
@@ -29,8 +30,11 @@
     "css-hot-loader": "^1.4.2",
     "css-loader": "^1.0.0",
     "file-loader": "^2.0.0",
+    "mini-css-extract-plugin": "^0.4.3",
     "tns-platform-declarations": "^4.3.0-2018-10-03-163950-01",
     "typescript": "^2.6.1",
+    "postcss-loader": "^3.0.0",
+    "sass-loader": "^7.1.0",
     "vue-loader": "^15.4.2",
     "vue-template-compiler": "^2.5.17",
     "webpack": "^4.20.2",

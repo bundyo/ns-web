@@ -1,11 +1,11 @@
 <template>
-    <div id="app">
-        <my-app></my-app>
+    <div>
+        <slot></slot>
     </div>
 </template>
 
 <script>
     export default {
-        name: 'app'
+        name: 'ns-template'
     }
 </script>
