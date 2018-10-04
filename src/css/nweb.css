@@ -9,19 +9,6 @@ ns-element {
     box-sizing: border-box;
 }
 
-.ns-element {
-    width: 100%;
-    height: 100%;
-}
-
-ns-page {
-
-}
-
-ns-scroll-view {
-
-}
-
 ns-stack-layout {
     display: flex;
     flex-direction: column;
@@ -142,16 +129,12 @@ ns-page {
     bottom: 0;
 }
 
-ns-page-action-bar {
+ns-action-bar {
     flex: 0 1 3.4em;
     position: relative;
-}
-
-ns-action-bar {
     display: flex;
     height: 100%;
     background-color: #efefef;
-    position: absolute;
     width: 100%;
     flex-direction: row;
     flex-wrap: wrap;
@@ -184,7 +167,7 @@ ns-action-bar [android\.position="right"] {
     order: 10;
 }
 
-.ns-page__content {
+ns-scroll-view {
     overflow-x: hidden;
     overflow-y: auto;
     flex: 1;

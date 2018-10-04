@@ -7,7 +7,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = {
     mode: 'development',
 
-    entry: './src/main.js',
+    entry: './src/hyper.js',
 
     output: {
         path: path.resolve(__dirname, './dist'),
@@ -19,15 +19,15 @@ module.exports = {
         rules: [{
             test: /\.css$/,
             use: [
-                {
-                    loader: 'vue-style-loader',
-                    options: {
-                        shadowMode: true
-                    }
-                },
                 // {
-                //     loader: MiniCssExtractPlugin.loader,
+                //     loader: 'vue-style-loader',
+                //     options: {
+                //         shadowMode: true
+                //     }
                 // },
+                {
+                    loader: MiniCssExtractPlugin.loader,
+                },
                 'css-loader',
                 {
                     loader: 'postcss-loader',
@@ -55,11 +55,11 @@ module.exports = {
                 shadowMode: true
             }
         },
-            {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/
-            },
+            // {
+            //     test: /\.js$/,
+            //     loader: 'babel-loader',
+            //     exclude: /node_modules/
+            // },
             {
                 test: /\.(png|jpg|gif|svg)$/,
                 loader: 'file-loader',
