@@ -1,13 +1,12 @@
 <template>
     <div>
-        <slot></slot>
     </div>
 </template>
 
 <script>
     export default {
-        name: 'ns-absolute-layout',
-        extends: import("./ns-element"),
+        name: 'ns-action-item',
+        extends: import("./ns-button"),
 
         props: {
             msg: String

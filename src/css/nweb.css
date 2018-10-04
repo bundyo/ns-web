@@ -9,7 +9,16 @@ ns-element {
     box-sizing: border-box;
 }
 
+.ns-element {
+    width: 100%;
+    height: 100%;
+}
+
 ns-page {
+
+}
+
+ns-scroll-view {
 
 }
 

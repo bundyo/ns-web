@@ -5,6 +5,8 @@
 <script>
     export default {
         name: 'ns-label',
+        extends: import("./ns-element"),
+
         props: ["text"],
 
         computed: {

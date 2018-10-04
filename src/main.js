@@ -13,6 +13,9 @@ import NSActionBar from "./components/ns-action-bar?shadow";
 import NSPage from "./components/ns-page?shadow";
 import NSLabel from "./components/ns-label?shadow";
 import NSButton from "./components/ns-button?shadow";
+import NSNavigationButton from "./components/ns-navigation-button?shadow";
+import NSActionItem from "./components/ns-action-item?shadow";
+import NSScrollView from "./components/ns-scroll-view?shadow";
 
 window.customElements.define(NSTemplate.name, wrap(Vue, NSTemplate));
 window.customElements.define(NSElement.name, wrap(Vue, NSElement));
@@ -25,6 +28,9 @@ window.customElements.define(NSActionBar.name, wrap(Vue, NSActionBar));
 window.customElements.define(NSPage.name, wrap(Vue, NSPage));
 window.customElements.define(NSLabel.name, wrap(Vue, NSLabel));
 window.customElements.define(NSButton.name, wrap(Vue, NSButton));
+window.customElements.define(NSNavigationButton.name, wrap(Vue, NSNavigationButton));
+window.customElements.define(NSActionItem.name, wrap(Vue, NSActionItem));
+window.customElements.define(NSScrollView.name, wrap(Vue, NSScrollView));
 
 Vue.config.productionTip = false;
 

@@ -7,6 +7,8 @@
 
     export default {
         name: 'ns-image',
+        extends: import("./ns-element"),
+
         props: ["src"],
 
         computed: {

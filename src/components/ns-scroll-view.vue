@@ -1,12 +1,12 @@
-<template>
-    <div :class="classes">
-        <slot></slot>
+<template :class="classes">
+    <div>
+        <slot :class="classes"></slot>
     </div>
 </template>
 
 <script>
     export default {
-        name: 'ns-stack-layout',
+        name: 'ns-scroll-view',
         extends: import("./ns-element"),
 
         props: ["orientation"],
@@ -24,5 +24,6 @@
                 };
             }
         }
+
     }
 </script>

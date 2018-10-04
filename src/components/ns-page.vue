@@ -1,11 +1,14 @@
 <template>
-    <div class="hello">
+    <div>
+        <slot></slot>
     </div>
 </template>
 
 <script>
     export default {
         name: 'ns-page',
+        extends: import("./ns-element"),
+
         props: {
             msg: String
         }

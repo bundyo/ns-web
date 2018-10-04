@@ -1,13 +1,26 @@
-<template>
-    <div class="hello">
+<template :class="classes">
+    <div>
+        <slot></slot>
     </div>
 </template>
 
 <script>
     export default {
         name: 'ns-element',
-        props: {
-            msg: String
+
+        props: ["disabled"],
+
+        computed: {
+            isDisabled() {
+                return !!this.disabled;
+            },
+
+            classes() {
+                return {
+                    "ns-element": true,
+                    "-disabled": this.isDisabled,
+                };
+            }
         }
     }
 </script>
