@@ -1,0 +1,85 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      loaded="pageLoaded">
+    <ActionBar class="action-bar" title="ActionBar">
+        <ActionItem android.position="left" class="btn" tap="showButtons" text="Buttons"/>
+        <ActionItem android.position="right" class="btn" tap="showSlideout" text="Details"/>
+    </ActionBar>
+    <ScrollView>
+        <GridLayout rows="auto, auto, auto, auto, auto, auto" columns="100, *, 100">
+            <Label text="Page" class="title" col="0"/>
+            <Button text="TAP" icon="logo.png" tap="{{ onTap }}" col="1"/>
+            <Label text="{{ message }}" class="message" textWrap="true" col="2"/>
+            <Label class="title" col="0" row="1" colSpan="3" text="Span Label"/>
+            <StackLayout row="2" col="0" colSpan="3" orientation="horizontal">
+                <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
+                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                     <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
+                     <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
+                     <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>
+                     <Label text="10, 110" left="10" top="110" width="90" height="90" backgroundColor="yellow"/>
+                 </AbsoluteLayout>
+            </StackLayout>
+            <StackLayout row="3" col="0" colSpan="3" orientation="horizontal">
+                <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
+                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                     <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
+                     <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
+                     <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>
+                     <Label text="10, 110" left="10" top="110" width="90" height="90" backgroundColor="yellow"/>
+                 </AbsoluteLayout>
+            </StackLayout>
+            <StackLayout row="4" col="0" colSpan="3" orientation="horizontal">
+                <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
+                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                     <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
+                     <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
+                     <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>
+                     <Label text="10, 110" left="10" top="110" width="90" height="90" backgroundColor="yellow"/>
+                 </AbsoluteLayout>
+            </StackLayout>
+            <StackLayout row="5" col="0" colSpan="3" orientation="horizontal">
+                <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
+                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                     <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
+                     <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
+                     <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>
+                     <Label text="10, 110" left="10" top="110" width="90" height="90" backgroundColor="yellow"/>
+                 </AbsoluteLayout>
+            </StackLayout>
+        </GridLayout>
+
+        <!--        <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+            <Label text="no margin" left="10" top="10" width="100" height="100" backgroundColor="dodgerblue"/>
+            <Label text="margin=`30`" left="10" top="10" margin="30" width="100" height="90" backgroundColor="lightgreen"/>
+        </AbsoluteLayout>
+        <StackLayout orientation="horizontal">
+            <Label text="Items Page" class="title" col="0"/>
+            <Button text="TAP" tap="{{ onTap }}" col="1" color="red"/>
+            <Label text="{{ message }}" class="message" textWrap="true" col="2"/>
+        </StackLayout>
+        <StackLayout orientation="vertical" width="210" height="210" backgroundColor="lightgray">
+            <Label text="Label 1" horizontalAlignment="left" backgroundColor="orangered"/>
+            <Label text="Label 2" horizontalAlignment="center" backgroundColor="lightgreen"/>
+            <Label text="Label 3" horizontalAlignment="right" backgroundColor="dodgerblue"/>
+            <Label text="Label 4" horizontalAlignment="stretch" backgroundColor="yellow"/>
+        </StackLayout>
+        <StackLayout orientation="horizontal" width="210" height="210" backgroundColor="lightgray">
+            <Label text="Label 1" verticalAlignment="top" backgroundColor="orangered"/>
+            <Label text="Label 2" verticalAlignment="center" backgroundColor="lightgreen"/>
+            <Label text="Label 3" verticalAlignment="bottom" backgroundColor="dodgerblue"/>
+            <Label text="Label 4" verticalAlignment="stretch" backgroundColor="yellow"/>
+        </StackLayout>
+        <WrapLayout orientation="horizontal" width="210" height="210" backgroundColor="lightgray">
+            <Label text="Label 1" width="70" height="70" backgroundColor="orangered"/>
+            <Label text="Label 2" width="70" height="70" backgroundColor="lightgreen"/>
+            <Label text="Label 3" width="70" height="70" backgroundColor="dodgerblue"/>
+            <Label text="Label 4" width="70" height="70" backgroundColor="yellow"/>
+        </WrapLayout>
+        <WrapLayout orientation="vertical" width="210" height="210" style.backgroundColor="lightgray">
+            <Label text="Label 1" width="70" height="70" backgroundColor="orangered"/>
+            <Label text="Label 2" width="70" height="70" backgroundColor="lightgreen"/>
+            <Label text="Label 3" width="70" height="70" backgroundColor="dodgerblue"/>
+            <Label text="Label 4" width="70" height="70" backgroundColor="yellow"/>
+        </WrapLayout>-->
+    </ScrollView>
+</Page>

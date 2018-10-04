@@ -1,0 +1,14 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      loaded="pageLoaded">
+    <ActionBar class="action-bar" title="Buttons">
+        <ActionItem android.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
+    </ActionBar>
+
+    <StackLayout>
+        <StackLayout class="m-15">
+            <Button class="btn btn-primary btn-active" id="button" text="Binding Text" tap="onTapBinding"/>
+            <StackLayout/>
+            <Button class="btn btn-primary" id="button" text="Tap Event" tap="onTapEvent"/>
+        </StackLayout>
+    </StackLayout>
+</Page>
