@@ -19,12 +19,6 @@ module.exports = {
         rules: [{
             test: /\.css$/,
             use: [
-                // {
-                //     loader: 'vue-style-loader',
-                //     options: {
-                //         shadowMode: true
-                //     }
-                // },
                 {
                     loader: MiniCssExtractPlugin.loader,
                 },
@@ -38,7 +32,24 @@ module.exports = {
                         ]
                     }
                 },
-                'sass-loader'
+            ]
+        }, {
+            test: /\.scss$/,
+            use: [
+                {
+                    loader: MiniCssExtractPlugin.loader,
+                },
+                'css-loader',
+                {
+                    loader: 'postcss-loader',
+                    options: {
+                        plugins: () => [
+                            require('./postcss-nativescript'),
+                            require('autoprefixer')
+                        ]
+                    }
+                },
+                'sass-loader',
             ]
         }, {
             test: /\.vue$/,
@@ -55,19 +66,13 @@ module.exports = {
                 shadowMode: true
             }
         },
-            // {
-            //     test: /\.js$/,
-            //     loader: 'babel-loader',
-            //     exclude: /node_modules/
-            // },
-            {
-                test: /\.(png|jpg|gif|svg)$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]?[hash]'
-                }
+        {
+            test: /\.(png|jpg|gif|svg)$/,
+            loader: 'file-loader',
+            options: {
+                name: '[name].[ext]?[hash]'
             }
-        ]
+        }]
     },
     plugins: [
         new VueLoaderPlugin(),
@@ -75,8 +80,6 @@ module.exports = {
             template: 'src/assets/index.html'
         }),
         new MiniCssExtractPlugin({
-            // Options similar to the same options in webpackOptions.output
-            // both options are optional
             filename: "[name].css",
             chunkFilename: "[id].css"
         }),

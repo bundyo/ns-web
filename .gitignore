@@ -18,3 +18,5 @@ npm-debug.log
 # TS
 src/tns-core-modules/**/*.js
 src/tns-core-modules/**/*.js.map
+!src/tns-core-modules/application/application.js
+!src/tns-core-modules/application/application.web.js

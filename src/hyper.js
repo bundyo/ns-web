@@ -1,7 +1,8 @@
 import HyperHTMLElement from 'hyperhtml-element';
 
 import "./css/nweb.css";
-import "./css/core.light.css";
+
+import "./css/_app-common.scss";
 
 import "./ns-app";
 import "./hypers/ns-element";

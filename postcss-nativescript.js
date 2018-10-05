@@ -1,7 +1,8 @@
 var postcss = require('postcss'),
     digitRegExp = /^[\d\s]+$/,
     digitReplacementRegExp = /(\d+)+/g,
-    dashCapitalRegExp = /([a-z\d])([A-Z])/g,
+    dashCapitalRegExp = /([A-Z]?[a-z\d])([A-Z])/g,
+    selectorRegExp = /(^\s?|>\s?|\+\s?|~\s?|\s+)([A-Z]\w+?\b)/gm,
     dashCase = function (str) {
         return str.replace(dashCapitalRegExp, '$1-$2').toLowerCase();
     },
@@ -35,9 +36,11 @@ module.exports = postcss.plugin('postcss-nativescript', function (opts) {
     return function (css) {
         css.walk(function (node) {
             if (node.type === 'rule') {
-                node.selector = node.selector.replace(/(^\w+?$)/g, function (match, g1) {
-                    return "ns-" + dashCase(g1);
-                }).toLowerCase();
+                console.log("before: ", node.selector);
+                node.selector = node.selector.replace(selectorRegExp, (match, g1, g2) => {
+                    return g1 + "ns-" + dashCase(g2);
+                }).replace(/:highlighted/gm, ":active").toLowerCase();
+                console.log("after: ", node.selector);
             }
         });
 

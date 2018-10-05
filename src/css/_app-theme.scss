@@ -1,0 +1,11 @@
+// Import the theme’s variables. If you’re using a color scheme
+// other than “light”, switch the path to the alternative scheme,
+// for example '~nativescript-theme-core/scss/dark'.
+@import '~nativescript-theme-core/scss/blue';
+
+$accent-dark: darken($accent, 20%);
+$accent-light: lighten($accent, 20%);
+
+$primary-light: mix($primary, $accent, 60%);
+
+$background-light: mix($background, $accent, 90%);

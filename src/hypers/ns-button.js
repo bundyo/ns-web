@@ -4,23 +4,27 @@ export default class NSButton extends NSElement {
 
     static get observedAttributes() { return ["icon", "icon-align", "text"].concat(super.observedAttributes); }
 
+    created() {
+        super.created();
+
+        this.addEventListener("click", this.onclick);
+    }
+
     render() {
         return this.html`
-    <button class="${this.state.buttonClass}" style="${this.state.styles}" onclick="${this}">
         <i class="${this.state.iconClass}"></i>
-        <span>${this.text}</span>
-    </button>`;
+        <span>${this.text}</span>`;
     }
 
     onclick(e) {
+        e.stopPropagation();
+
         console.log(this, 'tap', e.target);
     }
 
     get defaultState() {
         return {
-            buttonClass: `ns-button__content ${this.className}`,
-            iconClass: `ns-button__icon fa fa-${this.icon} -${this.iconAlign}`,
-            styles: ""
+            iconClass: `ns-button__icon fa fa-${this.icon} -${this.iconAlign}`
         };
     }
 }

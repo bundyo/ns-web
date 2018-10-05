@@ -1,8 +1,10 @@
-const utils = require("./utils"),
+const utils = require("../utils"),
     Class = utils.Class,
     req = require.context("../app", true, /\.(js|xml|html|css)$/),
     tagRegExp = /(<\/?)((?!\?|\\|!|au-)\S*?)(\s|>)/g,
     selfClosingRegExp = /<([^\s/>]+?)(\s[^>]*?)\/>|<([\w:-]+?)\/>/g,
+    parentRegExp = /\/[^/]*$/,
+    expressionRegExp = /^{+?([^{}]*?)}+?$/g,
     modules = [],
     Application = Class.extend({
         started: null,
@@ -22,7 +24,7 @@ const utils = require("./utils"),
 
             module = module.replace("./", "");
 
-            parentModule && (parentModule = parentModule.replace(/\/[^/]*$/, ""));
+            parentModule && (parentModule = parentModule.replace(parentRegExp, ""));
 
             utils.tryCatch(function () {
                 template = req("./" + module + ".xml");
@@ -78,7 +80,7 @@ const utils = require("./utils"),
 
                         utils.forEach.call(attribs, function (value) {
                             if (value.nodeValue[0] === "{") {
-                                var expression = value.nodeValue.replace(/^\{+?([^{}]*?)}+?$/g, "$1").trim();
+                                var expression = value.nodeValue.replace(expressionRegExp, "$1").trim();
 
                                 if (/^\w+$/.test(expression)) {
                                     binding = modules[module].__nsBindings[expression];

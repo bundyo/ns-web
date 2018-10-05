@@ -1,8 +1,8 @@
-var appModule = require("../tns-core-modules/application/application-common");
-var observable = require("data/observable");
+var appModule = require("./application-common");
+var observable = require("../data/observable");
 var webApp = require("../application");
-var Frame = require("ui/frame").Frame;
-var trace = require("trace");
+var Frame = require("../ui/frame").Frame;
+var trace = require("../trace");
 
 trace.enable();
 
@@ -13,7 +13,7 @@ var WebApplication = (function (_super) {
     function WebApplication() {
         _super.apply(this, arguments);
         this._registeredReceivers = {};
-        this._pendingReceiverRegistrations = new Array();
+        this._pendingReceiverRegistrations = [];
     }
     WebApplication.prototype.init = function (webApp) {
         if (this.nativeApp) {
@@ -70,7 +70,7 @@ var WebApplication = (function (_super) {
                 var registerFunc = this._pendingReceiverRegistrations[i];
                 registerFunc(this.context);
             }
-            this._pendingReceiverRegistrations = new Array();
+            this._pendingReceiverRegistrations = [];
         }
     };
     return WebApplication;

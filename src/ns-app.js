@@ -10,8 +10,8 @@ class NSApp extends HyperHTMLElement {
         return this.html`<ns-page xmlns="http://schemas.nativescript.org/tns.xsd"
              loaded="pageLoaded">
         <ns-action-bar class="action-bar" title="ActionBar">
-            <ns-action-item android.position="left" class="btn" tap="showButtons" text="Buttons"></ns-action-item>
-            <ns-action-item android.position="right" class="btn" tap="showSlideout" text="Details"></ns-action-item>
+            <ns-action-item android.position="left" tap="showButtons" text="Buttons"></ns-action-item>
+            <ns-action-item android.position="right" tap="showSlideout" text="Details"></ns-action-item>
         </ns-action-bar>
         <ns-scroll-view>
             <ns-grid-layout rows="auto, auto, auto, auto, auto, auto" columns="100, *, 100">

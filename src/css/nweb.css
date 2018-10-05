@@ -78,36 +78,15 @@ ns-absolute-layout > * {
     position: absolute;
 }
 
-ns-button {
+ns-button,
+ns-action-item,
+ns-navigation-button {
+    border: 1px solid;
     position: relative;
-    display: inline-block;
     align-self: center;
-}
-
-ns-button.btn,
-ns-action-item.btn,
-ns-navigation-button.btn {
-    margin: 0 5px;
-    padding: 0;
-    font-family: inherit;
-}
-
-.ns-button__content {
-    border-color: #ccc;
-    border-style: solid;
-    -webkit-appearance: none;
-    appearance: none;
-    display: block;
-    font-size: inherit;
-    color: inherit;
-    background-color: inherit;
-    width: 100%;
-    height: 100%;
-}
-
-ns-button .ns-button__content {
-    margin: 0;
-    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 ns-label {
@@ -134,7 +113,6 @@ ns-action-bar {
     position: relative;
     display: flex;
     height: 100%;
-    background-color: #efefef;
     width: 100%;
     flex-direction: row;
     flex-wrap: wrap;
@@ -159,7 +137,7 @@ ns-web:before {
 
 ns-action-bar [web\.position="left"],
 ns-action-bar [android\.position="left"] {
-    order: 5;
+    order: 0;
 }
 
 ns-action-bar [web\.position="right"],
@@ -179,7 +157,7 @@ ns-scroll-view {
     text-align: left;
     align-self: center;
     font-size: 1.4em;
-    order: 0;
+    order: 5;
     text-indent: .8em;
 }
 
