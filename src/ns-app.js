@@ -1,5 +1,13 @@
-<template>
-    <ns-page xmlns="http://schemas.nativescript.org/tns.xsd"
+import HyperHTMLElement from 'hyperhtml-element';
+
+class NSApp extends HyperHTMLElement {
+
+    attributeChangedCallback(name, prev, curr) {
+        this.render();
+    }
+
+    render() {
+        return this.html`<ns-page xmlns="http://schemas.nativescript.org/tns.xsd"
              loaded="pageLoaded">
         <ns-action-bar class="action-bar" title="ActionBar">
             <ns-action-item android.position="left" class="btn" tap="showButtons" text="Buttons"></ns-action-item>
@@ -67,7 +75,7 @@
 
             <!--        <ns-absolute-layout width="210" height="210" background-color="lightgray">
                 <ns-label text="no margin" left="10" top="10" width="100" height="100" background-color="dodgerblue"></ns-label>
-                <ns-label text="margin=`30`" left="10" top="10" margin="30" width="100" height="90" background-color="lightgreen"></ns-label>
+                <ns-label text="margin=30" left="10" top="10" margin="30" width="100" height="90" background-color="lightgreen"></ns-label>
             </ns-absolute-layout>
             <ns-stack-layout orientation="horizontal">
                 <ns-label text="Items Page" class="title" col="0"></ns-label>
@@ -99,46 +107,20 @@
                 <ns-label text="Label 4" width="70" height="70" background-color="yellow"></ns-label>
             </ns-wrap-layout>-->
         </ns-scroll-view>
-    </ns-page>
-</template>
-
-<script>
-    export default {
-        name: 'my-app',
-
-        data() {
-            return {
-                message: "test",
-                title: "Custom Component Title",
-                info: "Custom Component Info"
-            };
-        },
-
-        methods: {
-            onTap() {
-                console.log("tap");
-            }
-        },
-
-        created() {
-        }
-    }
-</script>
-
-<style>
-    @import "./css/nweb.css";
-    @import "./css/core.light.css";
-
-    #app {
-        font-family: 'Avenir', Helvetica, Arial, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-align: center;
-        color: #2c3e50;
-        margin-top: 60px;
+    </ns-page>`;
     }
 
-    .title {
-        background: deeppink;
+    onclick() {
+        //console.log("tap");
     }
-</style>
+
+    onAnyEvent(e) {
+        //console.log(this, e.type, e.currentTarget, e.target);
+    }
+
+    get defaultState() {
+        return { version: "0.1" };
+    }
+}
+
+NSApp.define('ns-app');

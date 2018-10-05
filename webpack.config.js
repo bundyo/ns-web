@@ -1,12 +1,13 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const {VueLoaderPlugin} = require('vue-loader');
+const { VueLoaderPlugin } = require('vue-loader');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
     mode: 'development',
 
-    entry: './app/app.js',
+    entry: './src/hyper.js',
 
     output: {
         path: path.resolve(__dirname, './dist'),
@@ -18,28 +19,47 @@ module.exports = {
         rules: [{
             test: /\.css$/,
             use: [
+                // {
+                //     loader: 'vue-style-loader',
+                //     options: {
+                //         shadowMode: true
+                //     }
+                // },
                 {
-                    loader: 'vue-style-loader',
+                    loader: MiniCssExtractPlugin.loader,
+                },
+                'css-loader',
+                {
+                    loader: 'postcss-loader',
                     options: {
-                        shadowMode: true
+                        plugins: () => [
+                            require('./postcss-nativescript'),
+                            require('autoprefixer')
+                        ]
                     }
                 },
-                'css-loader'
+                'sass-loader'
             ]
         }, {
             test: /\.vue$/,
             loader: 'vue-loader',
             options: {
-                loaders: {},
+                loaders: {
+                    css: {
+                        loader: 'vue-style-loader',
+                        options: {
+                            shadowMode: true
+                        }
+                    },
+                },
                 shadowMode: true
-                // other vue-loader options go here
             }
         },
-            {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/
-            },
+            // {
+            //     test: /\.js$/,
+            //     loader: 'babel-loader',
+            //     exclude: /node_modules/
+            // },
             {
                 test: /\.(png|jpg|gif|svg)$/,
                 loader: 'file-loader',
@@ -53,7 +73,13 @@ module.exports = {
         new VueLoaderPlugin(),
         new HtmlWebpackPlugin({
             template: 'src/assets/index.html'
-        })
+        }),
+        new MiniCssExtractPlugin({
+            // Options similar to the same options in webpackOptions.output
+            // both options are optional
+            filename: "[name].css",
+            chunkFilename: "[id].css"
+        }),
     ],
     resolve: {
         modules: [
