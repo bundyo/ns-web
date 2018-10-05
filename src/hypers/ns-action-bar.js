@@ -6,7 +6,8 @@ export default class NSActionBar extends NSElement {
 
     render() {
         return this.html`
-    <span class="ns-action-bar__title">${this.title}</span>`;
+    <span class="ns-action-bar__title">${this.title}</span>
+    ${this.children}`;
     }
 }
 
