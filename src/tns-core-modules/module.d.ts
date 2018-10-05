@@ -47,6 +47,7 @@ declare namespace NodeJS {
         zonedCallback(callback: Function): Function;
         Reflect?: any;
         Timer?: any;
+        context: any;
         Deprecated(target: Object, key?: string | symbol, descriptor?: any): any;
         Experimental(target: Object, key?: string | symbol, descriptor?: any): any;
         __native?: any;
@@ -59,11 +60,6 @@ declare namespace NodeJS {
         __requireOverride?: (name: string, dir: string) => any;
     }
 }
-
-declare function setTimeout(callback: (...args: any[]) => void, ms: number, ...args: any[]): number;
-declare function clearTimeout(timeoutId: number): void;
-declare function setInterval(callback: (...args: any[]) => void, ms: number, ...args: any[]): number;
-declare function clearInterval(intervalId: number): void;
 
 /**
  * An extended JavaScript Error which will have the nativeError property initialized in case the error is caused by executing platform-specific code.

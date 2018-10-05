@@ -263,7 +263,7 @@ export class FileSystemAccess {
 
     public readText(path: string, onError?: (error: any) => any, encoding?: any) {
         try {
-            return context(this.normalizePath(path));
+            return global.context(this.normalizePath(path));
         } catch (ex) {
             if (onError) {
                 onError(new Error("Failed to read file at path '" + path + "': " + ex));
@@ -284,28 +284,28 @@ export class FileSystemAccess {
     public writeText(path: string, content: string, onError?: (error: any) => any, encoding?: any) {
         throw new Error("writeText is not implemented!");
         // const actualEncoding = encoding || textEncoding.UTF_8;
-
-        // TODO: verify the useAuxiliaryFile parameter should be false
-        try {
-            const nsString = NSString.stringWithString(content);
-
-            nsString.writeToFileAtomicallyEncodingError(path, false, actualEncoding);
-        } catch (ex) {
-            if (onError) {
-                onError(new Error("Failed to write to file '" + path + "': " + ex));
-            }
-        }
+        //
+        // // TODO: verify the useAuxiliaryFile parameter should be false
+        // try {
+        //     const nsString = NSString.stringWithString(content);
+        //
+        //     nsString.writeToFileAtomicallyEncodingError(path, false, actualEncoding);
+        // } catch (ex) {
+        //     if (onError) {
+        //         onError(new Error("Failed to write to file '" + path + "': " + ex));
+        //     }
+        // }
     }
 
     public write(path: string, content: NSData, onError?: (error: any) => any) {
         throw new Error("write is not implemented!");
-        try {
-            content.writeToFileAtomically(path, true);
-        } catch (ex) {
-            if (onError) {
-                onError(new Error("Failed to write to file '" + path + "': " + ex));
-            }
-        }
+        // try {
+        //     content.writeToFileAtomically(path, true);
+        // } catch (ex) {
+        //     if (onError) {
+        //         onError(new Error("Failed to write to file '" + path + "': " + ex));
+        //     }
+        // }
     }
 
     private getKnownPath(folderType: number): string {
@@ -343,15 +343,15 @@ export class FileSystemAccess {
 
     private deleteEntity(path: string, onError?: (error: any) => any) {
         throw new Error("deleteEntity is not implemented");
-        try {
-            const fileManager = ios.getter(NSFileManager, NSFileManager.defaultManager);
-
-            fileManager.removeItemAtPathError(path);
-        } catch (ex) {
-            if (onError) {
-                onError(new Error("Failed to delete file at path '" + path + "': " + ex));
-            }
-        }
+        // try {
+        //     const fileManager = ios.getter(NSFileManager, NSFileManager.defaultManager);
+        //
+        //     fileManager.removeItemAtPathError(path);
+        // } catch (ex) {
+        //     if (onError) {
+        //         onError(new Error("Failed to delete file at path '" + path + "': " + ex));
+        //     }
+        // }
     }
 
     private enumEntities(path: string, callback: (entity: { path: string; name: string; extension: string }) => boolean, onError?: (error) => any) {
@@ -360,12 +360,13 @@ export class FileSystemAccess {
 
             try {
                 path = this.normalizePath(path);
-                files = context.keys()
+                files = global.context.keys()
                     .filter(x => x.startsWith(path))
                     .map(x => {
                         const relative = x.substring(path.length + 1);
                         const slashIdx = relative.indexOf('/');
-                        return slashIdx > 0 ? relative.substring(0, slashIdx) : relative);
+                        return slashIdx > 0 ? relative.substring(0, slashIdx) : relative;
+                    });
             } catch (ex) {
                 if (onError) {
                     onError(new Error("Failed to enum files for folder '" + path + "': " + ex));
