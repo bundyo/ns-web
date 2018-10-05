@@ -49,25 +49,29 @@ export class FileSystemAccess {
 
     public getFile(path: string, onError?: (error: any) => any): { path: string; name: string; extension: string } {
         try {
-            const fileManager = ios.getter(NSFileManager, NSFileManager.defaultManager);
-            const exists = fileManager.fileExistsAtPath(path);
+            // const fileManager = ios.getter(NSFileManager, NSFileManager.defaultManager);
+            // const exists = fileManager.fileExistsAtPath(path);
 
-            if (!exists) {
-                const parentPath = this.getParent(path, onError).path;
-                if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(parentPath, true, null)
-                    || !fileManager.createFileAtPathContentsAttributes(path, null, null)) {
-                    if (onError) {
-                        onError(new Error("Failed to create file at path '" + path + "'"));
-                    }
-                    return undefined;
-                }
+            // if (!exists) {
+            //     const parentPath = this.getParent(path, onError).path;
+            //     if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(parentPath, true, null)
+            //         || !fileManager.createFileAtPathContentsAttributes(path, null, null)) {
+            //         if (onError) {
+            //             onError(new Error("Failed to create file at path '" + path + "'"));
+            //         }
+            //         return undefined;
+            //     }
+            // }
+
+            // const fileName = fileManager.displayNameAtPath(path);
+
+            if (!this.fileExists(path)) {
+                onError(new Error("File at path '" + path + "' doesn't exist!"));
             }
-
-            const fileName = fileManager.displayNameAtPath(path);
 
             return {
                 path: path,
-                name: fileName,
+                name: this.getFileName(path),
                 extension: this.getFileExtension(path)
             };
         } catch (exception) {
@@ -114,14 +118,12 @@ export class FileSystemAccess {
 
     public getExistingFolder(path: string, onError?: (error: any) => any): { path: string; name: string } {
         try {
-            const fileManager = ios.getter(NSFileManager, NSFileManager.defaultManager);
             const exists = this.folderExists(path);
 
             if (exists) {
-                const dirName = fileManager.displayNameAtPath(path);
                 return {
                     path: path,
-                    name: dirName
+                    name: this.getFileName(path),
                 };
             }
             return undefined;
@@ -184,12 +186,15 @@ export class FileSystemAccess {
         // const exists = fileManager.fileExistsAtPathIsDirectory(path, isDirectory);
         //
         // return { exists: exists, isDirectory: isDirectory.value };
-        return { exists: true, isDirectory: true };
+        path = this.normalizePath(path);
+        const exists = global.context.keys().filter(key => key.startsWith(path)).length > 0;
+        const isDirectory = global.context.keys().filter(key => key.startsWith(path + "/")).length > 0;
+        return { exists, isDirectory };
     }
 
     public concatPath(left: string, right: string): string {
         // return NSString.pathWithComponents(<any>[left, right]).toString();
-        return "";
+        return this.joinPath(left, right);
     }
 
     public deleteFile(path: string, onError?: (error: any) => any) {
@@ -257,11 +262,8 @@ export class FileSystemAccess {
     }
 
     public readText(path: string, onError?: (error: any) => any, encoding?: any) {
-        const actualEncoding = encoding || textEncoding.UTF_8;
-
         try {
-            const nsString = NSString.stringWithContentsOfFileEncodingError(path, actualEncoding);
-            return nsString.toString();
+            return context(this.normalizePath(path));
         } catch (ex) {
             if (onError) {
                 onError(new Error("Failed to read file at path '" + path + "': " + ex));
@@ -271,7 +273,7 @@ export class FileSystemAccess {
 
     public read(path: string, onError?: (error: any) => any): NSData {
         try {
-            return NSData.dataWithContentsOfFile(path);
+            return this.readText(path);
         } catch (ex) {
             if (onError) {
                 onError(new Error("Failed to read file at path '" + path + "': " + ex));
@@ -280,7 +282,8 @@ export class FileSystemAccess {
     }
 
     public writeText(path: string, content: string, onError?: (error: any) => any, encoding?: any) {
-        const actualEncoding = encoding || textEncoding.UTF_8;
+        throw new Error("writeText is not implemented!");
+        // const actualEncoding = encoding || textEncoding.UTF_8;
 
         // TODO: verify the useAuxiliaryFile parameter should be false
         try {
@@ -295,6 +298,7 @@ export class FileSystemAccess {
     }
 
     public write(path: string, content: NSData, onError?: (error: any) => any) {
+        throw new Error("write is not implemented!");
         try {
             content.writeToFileAtomically(path, true);
         } catch (ex) {
@@ -314,6 +318,9 @@ export class FileSystemAccess {
         return "";
     }
 
+    public getFileName(path: string): string {
+        return path.substr(path.lastIndexOf('/') + 1, path.length);
+    }
     // TODO: This method is the same as in the iOS implementation.
     // Make it in a separate file / module so it can be reused from both implementations.
     public getFileExtension(path: string): string {
@@ -328,13 +335,14 @@ export class FileSystemAccess {
         //return extension;
         const dotIndex = path.lastIndexOf(".");
         if (dotIndex && dotIndex >= 0 && dotIndex < path.length) {
-            return path.substring(dotIndex);
+            return path.substring(0, dotIndex);
         }
 
         return "";
     }
 
     private deleteEntity(path: string, onError?: (error: any) => any) {
+        throw new Error("deleteEntity is not implemented");
         try {
             const fileManager = ios.getter(NSFileManager, NSFileManager.defaultManager);
 
@@ -348,12 +356,16 @@ export class FileSystemAccess {
 
     private enumEntities(path: string, callback: (entity: { path: string; name: string; extension: string }) => boolean, onError?: (error) => any) {
         try {
-            let files: NSArray<string>;
+            let files = [];
 
             try {
-                const fileManager = ios.getter(NSFileManager, NSFileManager.defaultManager);
-
-                files = fileManager.contentsOfDirectoryAtPathError(path);
+                path = this.normalizePath(path);
+                files = context.keys()
+                    .filter(x => x.startsWith(path))
+                    .map(x => {
+                        const relative = x.substring(path.length + 1);
+                        const slashIdx = relative.indexOf('/');
+                        return slashIdx > 0 ? relative.substring(0, slashIdx) : relative);
             } catch (ex) {
                 if (onError) {
                     onError(new Error("Failed to enum files for folder '" + path + "': " + ex));
@@ -362,8 +374,8 @@ export class FileSystemAccess {
                 return;
             }
 
-            for (let i = 0; i < files.count; i++) {
-                const file = files.objectAtIndex(i);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
 
                 const info = {
                     path: this.concatPath(path, file),
@@ -397,6 +409,19 @@ export class FileSystemAccess {
         // const normalized = nsString.stringByStandardizingPath;
         //
         // return normalized;
+
+        //context entries start with "./"
+        if (!path.startsWith("./")) {
+            if (path.startsWith("/")) {
+                path = "." + path;
+            } else {
+                path = "./" + path;
+            }
+        }
+
+        // strip trailing /
+        path = path.endsWith('/') ? path.substring(0, path.length-1) : path;
+
         return path;
     }
 

@@ -2,6 +2,7 @@
 require("./decorators");
 
 const context: any = require.context("../../../app", true, /\.(js|css|xml|html)$/i);
+global.context = context;
 
 // Required by V8 snapshot generator
 if (!global.__extends) {
