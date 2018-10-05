@@ -16,6 +16,10 @@ export default class NSElement extends HyperHTMLElement {
     created() {
         // triggers automatically attributeChangedCallback
         //this.key = 'value';
+        this.uId = this.uniqId();
+
+        this.classList.add(`-${this.uId}`);
+
         this.render();
     }
 
@@ -76,6 +80,28 @@ export default class NSElement extends HyperHTMLElement {
         });
 
         return { styles };
+    }
+
+    uniqId() {
+        return `a${Math.random().toString(36).substr(2, 10)}`;
+    }
+
+    updateStyles(scoped) {
+        const styleTag =  Array.from(this.children).find(v => v.tagName === "STYLE") || document.createElement("style");
+
+        styleTag.type = 'text/css';
+
+        scoped = ".-" + this.uId + " " +
+            scoped.replace(/(\n\s*?|}\s*?)(a-z|A-Z|\.|\[|&)/ig, "$1 .-" + this.uId + " $2")
+                .replace(/&/g, "");
+
+        if (styleTag.styleSheet){
+            styleTag.styleSheet.cssText = scoped;
+        } else {
+            styleTag.appendChild(document.createTextNode(scoped));
+        }
+
+        this.appendChild(styleTag);
     }
 
     // this method is Preact friendly, once invoked
