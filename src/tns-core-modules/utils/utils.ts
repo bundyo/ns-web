@@ -45,7 +45,7 @@ export module layout {
     }
 }
 
-export module ios {
+export module web {
     export function getter<T>(_this: any, property: T | { (): T }): T {
         if (typeof property === "function") {
             return (<{ (): T }>property).call(_this);
@@ -54,41 +54,21 @@ export module ios {
         }
     }
 
-    export module collections {
-        export function jsArrayToNSArray(str: string[]): NSArray<any> {
-            return NSArray.arrayWithArray(<any>str);
-        }
-
-        export function nsArrayToJSArray(a: NSArray<any>): Array<Object> {
-            var arr = [];
-            if (a !== undefined) {
-                let count = a.count;
-                for (let i = 0; i < count; i++) {
-                    arr.push(a.objectAtIndex(i));
-                }
-            }
-
-            return arr;
-        }
-    }
-
     export function isLandscape(): boolean {
-        const device = getter(UIDevice, UIDevice.currentDevice);
-        const statusBarOrientation = getter(UIApplication, UIApplication.sharedApplication).statusBarOrientation;
-        const isStatusBarOrientationLandscape = isOrientationLandscape(statusBarOrientation);
-        return isOrientationLandscape(device.orientation) || isStatusBarOrientationLandscape;
+        return window.innerWidth > window.innerHeight;
     }
 
-    export var MajorVersion = NSString.stringWithString(getter(UIDevice, UIDevice.currentDevice).systemVersion).intValue;
+    export var MajorVersion = 1;
 
     export function openFile(filePath: string): boolean {
         try {
-            const appPath = getCurrentAppPath();
-            const path = filePath.replace("~", appPath)
-
-            const controller = UIDocumentInteractionController.interactionControllerWithURL(NSURL.fileURLWithPath(path));
-            controller.delegate = new UIDocumentInteractionControllerDelegateImpl();
-            return controller.presentPreviewAnimated(true);
+            throw new Error("openFile not implemented");
+            // const appPath = getCurrentAppPath();
+            // const path = filePath.replace("~", appPath)
+            //
+            // const controller = UIDocumentInteractionController.interactionControllerWithURL(NSURL.fileURLWithPath(path));
+            // controller.delegate = new UIDocumentInteractionControllerDelegateImpl();
+            // return controller.presentPreviewAnimated(true);
         }
         catch (e) {
             traceWrite("Error in openFile", traceCategories.Error, traceMessageType.error);
@@ -106,7 +86,7 @@ export module ios {
             // Strip part after tns_modules to obtain app root
             appPath = currentDir.substring(0, tnsModulesIndex);
         }
-        
+
         return appPath;
     }
 
@@ -115,22 +95,22 @@ export module ios {
             return "";
         }
 
-        return NSString.stringWithString(NSString.pathWithComponents(<any>paths)).stringByStandardizingPath;
+        return paths.join("/");
     }
 
     export function getVisibleViewController(rootViewController: UIViewController): UIViewController {
-        if (rootViewController.presentedViewController) {
-            return getVisibleViewController(rootViewController.presentedViewController);
-        }
-
-        if (rootViewController.isKindOfClass(UINavigationController.class())) {
-            return getVisibleViewController((<UINavigationController>rootViewController).visibleViewController);
-        }
-
-        if (rootViewController.isKindOfClass(UITabBarController.class())) {
-            let selectedTab = (<UITabBarController>rootViewController).selectedViewController;
-            return getVisibleViewController(<UITabBarController>rootViewController);
-        }
+        // if (rootViewController.presentedViewController) {
+        //     return getVisibleViewController(rootViewController.presentedViewController);
+        // }
+        //
+        // if (rootViewController.isKindOfClass(UINavigationController.class())) {
+        //     return getVisibleViewController((<UINavigationController>rootViewController).visibleViewController);
+        // }
+        //
+        // if (rootViewController.isKindOfClass(UITabBarController.class())) {
+        //     let selectedTab = (<UITabBarController>rootViewController).selectedViewController;
+        //     return getVisibleViewController(<UITabBarController>rootViewController);
+        // }
 
         return rootViewController;
 
@@ -144,10 +124,11 @@ export function GC() {
 
 export function openUrl(location: string): boolean {
     try {
-        var url = NSURL.URLWithString(location.trim());
-        if (ios.getter(UIApplication, UIApplication.sharedApplication).canOpenURL(url)) {
-            return ios.getter(UIApplication, UIApplication.sharedApplication).openURL(url);
-        }
+        throw new Error("openUrl not implemented");
+        // var url = NSURL.URLWithString(location.trim());
+        // if (ios.getter(UIApplication, UIApplication.sharedApplication).canOpenURL(url)) {
+        //     return ios.getter(UIApplication, UIApplication.sharedApplication).openURL(url);
+        // }
     }
     catch (e) {
         // We Don't do anything with an error.  We just output it
@@ -156,25 +137,25 @@ export function openUrl(location: string): boolean {
     return false;
 }
 
-class UIDocumentInteractionControllerDelegateImpl extends NSObject implements UIDocumentInteractionControllerDelegate {
-    public static ObjCProtocols = [UIDocumentInteractionControllerDelegate];
-
-    public getViewController(): UIViewController {
-        const app = ios.getter(UIApplication, UIApplication.sharedApplication);
-        return app.keyWindow.rootViewController;
-    }
-
-    public documentInteractionControllerViewControllerForPreview(controller: UIDocumentInteractionController) {
-        return this.getViewController();
-    }
-
-    public documentInteractionControllerViewForPreview(controller: UIDocumentInteractionController) {
-        return this.getViewController().view;
-    }
-
-    public documentInteractionControllerRectForPreview(controller: UIDocumentInteractionController): CGRect {
-        return this.getViewController().view.frame;
-    }
-}
+//class UIDocumentInteractionControllerDelegateImpl extends NSObject implements UIDocumentInteractionControllerDelegate {
+    // public static ObjCProtocols = [UIDocumentInteractionControllerDelegate];
+    //
+    // public getViewController(): UIViewController {
+    //     const app = ios.getter(UIApplication, UIApplication.sharedApplication);
+    //     return app.keyWindow.rootViewController;
+    // }
+    //
+    // public documentInteractionControllerViewControllerForPreview(controller: UIDocumentInteractionController) {
+    //     return this.getViewController();
+    // }
+    //
+    // public documentInteractionControllerViewForPreview(controller: UIDocumentInteractionController) {
+    //     return this.getViewController().view;
+    // }
+    //
+    // public documentInteractionControllerRectForPreview(controller: UIDocumentInteractionController): CGRect {
+    //     return this.getViewController().view.frame;
+    // }
+//}
 
 mainScreenScale = 1.0;

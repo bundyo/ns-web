@@ -60,8 +60,7 @@ export class TextBase extends TextBaseCommon {
         if (!(value instanceof Font) || !this.formattedText) {
             let nativeView = this.nativeTextViewProtected;
             nativeView = nativeView instanceof UIButton ? nativeView.titleLabel : nativeView;
-            const font = value instanceof Font ? value.getUIFont(nativeView.font) : value;
-            nativeView.font = font;
+            nativeView.font = value instanceof Font ? value.getUIFont(nativeView.font) : value;
         }
     }
 
@@ -196,7 +195,7 @@ export class TextBase extends TextBaseCommon {
                 // UITextView's font seems to change inside.
                 dict.set(NSFontAttributeName, this.nativeTextViewProtected.font);
             }
-            
+
             const result = NSMutableAttributedString.alloc().initWithString(source);
             result.setAttributesRange(<any>dict, { location: 0, length: source.length });
             if (this.nativeTextViewProtected instanceof UIButton) {
