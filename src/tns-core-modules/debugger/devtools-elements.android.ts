@@ -1,4 +1,4 @@
-import { InspectorEvents, InspectorCommands } from "./devtools-elements";
+import { InspectorEvents, InspectorCommands } from "./devtools-elements-types";
 import { getDocument, getComputedStylesForNode, removeNode, setAttributeAsText } from "./devtools-elements.common";
 import { registerInspectorEvents, DOMNode } from "./dom-node";
 

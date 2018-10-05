@@ -1,4 +1,4 @@
-﻿import { TextDecoration, TextAlignment, TextTransform, WhiteSpace } from "./text-base";
+﻿import { TextDecoration, TextAlignment, TextTransform, WhiteSpace } from ".";
 import { Font } from "../styling/font";
 import { backgroundColorProperty } from "../styling/style-properties";
 import {

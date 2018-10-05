@@ -2,7 +2,7 @@
  * @module "ui/transition"
  */ /** */
 
-import { NavigationTransition, BackstackEntry } from "../frame";
+import { NavigationTransition, BackstackEntry } from ".";
 
 //@private
 /**

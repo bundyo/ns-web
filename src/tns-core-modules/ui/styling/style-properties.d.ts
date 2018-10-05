@@ -5,7 +5,7 @@
 import { TransformFunctionsInfo } from "../animation";
 import { Color } from "../../color";
 import { Style, CssProperty, CssAnimationProperty, ShorthandProperty, InheritedCssProperty } from "../core/properties";
-import { Font, FontStyle, FontWeight } from "./font";
+import { Font, FontStyle, FontWeight } from ".";
 import { Background } from "./background";
 import { dip, px, percent } from "../core/view";
 

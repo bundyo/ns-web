@@ -1,4 +1,4 @@
-﻿import { TextDecoration, TextAlignment, TextTransform } from "./text-base";
+﻿import { TextDecoration, TextAlignment, TextTransform } from ".";
 import { Font } from "../styling/font";
 import {
     TextBaseCommon, textProperty, formattedTextProperty, textAlignmentProperty, textDecorationProperty,

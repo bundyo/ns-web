@@ -1,11 +1,11 @@
 /// <reference path="transition-definitions.android.d.ts"/>
 
 // Definitions.
-import { NavigationTransition, BackstackEntry } from "../frame";
+import { NavigationTransition, BackstackEntry } from ".";
 import { AnimationType } from "./fragment.transitions";
 
 // Types.
-import { Transition, AndroidTransitionType } from "../transition/transition";
+import { Transition, AndroidTransitionType } from "../transition";
 import { SlideTransition } from "../transition/slide-transition";
 import { FadeTransition } from "../transition/fade-transition";
 import { FlipTransition } from "../transition/flip-transition";
