@@ -1,5 +1,5 @@
 ﻿import { TextDecoration, TextAlignment, TextTransform } from ".";
-import { Font } from "../styling/font-types";
+import { Font } from "../styling/font";
 import {
     TextBaseCommon, textProperty, formattedTextProperty, textAlignmentProperty, textDecorationProperty,
     textTransformProperty, letterSpacingProperty, colorProperty, fontInternalProperty, lineHeightProperty,

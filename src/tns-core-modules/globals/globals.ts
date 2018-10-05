@@ -1,6 +1,8 @@
 ﻿// Required by TypeScript compiler
 require("./decorators");
 
+const context: any = require.context("../../../app", true, /\.(js|css|xml|html)$/i);
+
 // Required by V8 snapshot generator
 if (!global.__extends) {
     global.__extends = function (d, b) {
@@ -78,23 +80,56 @@ global.registerWebpackModules = function registerWebpackModules(context: Context
     });
 }
 
-global.moduleExists = function (name: string): boolean {
-    return modules.has(name);
-}
+// global.moduleExists = function (name: string): boolean {
+//     return modules.has(name);
+// }
+//
+// global.loadModule = function (name: string): any {
+//     const loader = modules.get(name);
+//     if (loader) {
+//         return loader();
+//     }
+//     for (let resolver of (<any>global).moduleResolvers) {
+//         const result = resolver(name);
+//         if (result) {
+//             modules.set(name, () => result);
+//             return result;
+//         }
+//     }
+// }
 
-global.loadModule = function (name: string): any {
-    const loader = modules.get(name);
+global.moduleExists = function (name) {
+    let resolver;
+
+    try {
+        resolver = context.resolve("./" + name + ".js");
+    } catch (e) {
+        try {
+            resolver = context.resolve("./" + name + "/" + name + ".js");
+        } catch (e) {}
+    }
+
+    return modules.has(name) || !!resolver;
+};
+
+global.loadModule = function (name) {
+    let result,
+        loader = modules.get(name);
     if (loader) {
         return loader();
     }
-    for (let resolver of (<any>global).moduleResolvers) {
-        const result = resolver(name);
-        if (result) {
-            modules.set(name, () => result);
-            return result;
-        }
+    else {
+        //try {
+        result = context("./" + name + ".js");
+        //} catch (e) {
+        //    try {
+        //        result = context("./" + name + "/" + name + ".js");
+        //    } catch (e) {}
+        //}
+        modules.set(name, function () { return result; });
+        return result;
     }
-}
+};
 
 global.zonedCallback = function (callback: Function): Function {
     if ((<any>global).zone) {
