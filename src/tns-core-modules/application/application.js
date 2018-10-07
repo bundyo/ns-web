@@ -13,8 +13,25 @@ import {
     notify, launchEvent, resumeEvent, suspendEvent, exitEvent, lowMemoryEvent,
     orientationChangedEvent, setApplication, livesync, displayedEvent, getCssFileName
 } from "./application-common";
-import {NavigationEntry, View} from "~/src/tns-core-modules/ui/frame";
-import {createViewFromEntry} from "~/src/tns-core-modules/ui/builder";
+import { createViewFromEntry } from "~/src/tns-core-modules/ui/builder";
+
+import "../../css/nweb.css";
+
+import "../../css/_app-common.scss";
+
+import "../../hypers/ns-element";
+import "../../hypers/ns-button";
+import "../../hypers/ns-absolute-layout";
+import "../../hypers/ns-grid-layout";
+import "../../hypers/ns-stack-layout";
+import "../../hypers/ns-wrap-layout";
+import "../../hypers/ns-scroll-view";
+import "../../hypers/ns-action-bar";
+import "../../hypers/ns-action-item";
+import "../../hypers/ns-navigation-button";
+import "../../hypers/ns-page";
+import "../../hypers/ns-image";
+import "../../hypers/ns-label";
 
 // First reexport so that app module is initialized.
 export * from "./application-common";

@@ -116,6 +116,18 @@ ns-page {
     bottom: 0;
 }
 
+ns-page > * {
+    order: 5;
+}
+
+ns-page > ns-action-bar {
+    order: 0;
+}
+
+ns-page > ns-tab-view {
+    order: 10;
+}
+
 ns-action-bar {
     flex: 0 1 3.4em;
     position: relative;

@@ -9,6 +9,9 @@ vmModule.mainViewModel.set("info", "Custom Component Info");
 vmModule.mainViewModel.set("goBack", function () {
     frames.topmost().goBack();
 });
+vmModule.mainViewModel.set("onTap", () => {
+    console.log("tappity");
+});
 
 function pageLoaded(args) {
     var page = args.object;

@@ -42,7 +42,7 @@ export class Button extends ButtonBase {
         const nativeView = this.nativeViewProtected;
         initializeClickListener.call(this);
         const clickListener = new ClickListener(this);
-        nativeView.onclick = clickListener;
+        nativeView.onclick = clickListener.onClick;
         (<any>nativeView).clickListener = clickListener;
     }
 

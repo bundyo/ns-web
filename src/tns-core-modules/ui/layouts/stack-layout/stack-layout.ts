@@ -1,9 +1,17 @@
 ﻿import { StackLayoutBase, View, layout, VerticalAlignment, HorizontalAlignment } from "./stack-layout-common";
 
+import NSStackLayout from "../../../../hypers/ns-stack-layout";
+
 export * from "./stack-layout-common";
 
 export class StackLayout extends StackLayoutBase {
     private _totalLength = 0;
+
+    nativeViewProtected: NSStackLayout;
+
+    createNativeView() {
+        return document.createElement("ns-stack-layout");
+    }
 
     public onMeasure(widthMeasureSpec: number, heightMeasureSpec: number): void {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
