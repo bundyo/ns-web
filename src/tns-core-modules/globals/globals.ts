@@ -102,7 +102,7 @@ global.registerWebpackModules = function registerWebpackModules(context: Context
 global.moduleExists = function (name) {
     let resolver;
 
-    name = name.replace(/^\.\//, "");
+    name = name.replace(/^\/?[.~]\//, "");
 
     try {
         resolver = context.resolve("./" + name);
@@ -127,7 +127,7 @@ global.loadModule = function (name) {
         return loader();
     }
     else {
-        name = name.replace(/^\.\//, "");
+        name = name.replace(/^\/?[.~]\//, "");
 
         try {
             result = context("./" + name);

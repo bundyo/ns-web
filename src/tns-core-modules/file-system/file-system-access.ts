@@ -258,7 +258,7 @@ export class FileSystemAccess {
 
     public getCurrentAppPath(): string {
         // return ios.getCurrentAppPath();
-        return "";
+        return "~/";
     }
 
     public readText(path: string, onError?: (error: any) => any, encoding?: any) {
@@ -434,6 +434,6 @@ export class FileSystemAccess {
 
     public joinPaths(paths: string[]): string {
        // return ios.joinPaths(...paths);
-        return paths.join("/");
+        return paths.filter((v) => v).join(this.getPathSeparator());
     }
 }
