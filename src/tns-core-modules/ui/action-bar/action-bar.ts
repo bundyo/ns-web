@@ -22,18 +22,16 @@ function generateItemId(): number {
 let MenuItemClickListener: any;
 
 function initializeMenuItemClickListener(): void {
+    const owner = this;
+
     if (MenuItemClickListener) {
         return;
     }
 
     class MenuItemClickListenerImpl {
-        constructor(public owner: ActionBar) {
-            return global.__native(this);
-        }
-
         onMenuItemClick(item): boolean {
             let itemId = item.getItemId();
-            return this.owner._onWebItemSelected(itemId);
+            return owner._onWebItemSelected(itemId);
         }
     }
 
@@ -131,7 +129,7 @@ export class ActionBar extends ActionBarBase {
         const nativeView = this.nativeViewProtected;
         initializeMenuItemClickListener();
         const menuItemClickListener = new MenuItemClickListener(this);
-        nativeView.setOnMenuItemClickListener(menuItemClickListener);
+        nativeView.onclick = menuItemClickListener;
         (<any>nativeView).menuItemClickListener = menuItemClickListener;
     }
 
@@ -270,52 +268,36 @@ export class ActionBar extends ActionBarBase {
     }
 
     public _addActionItems() {
-        let menu = this.nativeViewProtected.getMenu();
+        //let menu = this.nativeViewProtected.getMenu();
         let items = this.actionItems.getVisibleItems();
 
-        menu.clear();
+        const abItems = this.nativeViewProtected.querySelectorAll("ns-action-item");
+
+        abItems.forEach((item) => item.remove());
+
         for (let i = 0; i < items.length; i++) {
             let item = <ActionItem>items[i];
-            let menuItem = menu.add(android.view.Menu.NONE, item._getItemId(), android.view.Menu.NONE, item.text + "");
+            let menuItem = document.createElement("ns-action-item");
 
-            if (item.actionView && item.actionView.android) {
-                // With custom action view, the menuitem cannot be displayed in a popup menu.
-                item.android.position = "actionBar";
-                menuItem.setActionView(item.actionView.android);
-                ActionBar._setOnClickListener(item);
-            }
-            else if (item.android.systemIcon) {
-                // Try to look in the system resources.
-                let systemResourceId = getSystemResourceId(item.android.systemIcon);
-                if (systemResourceId) {
-                    menuItem.setIcon(systemResourceId);
-                }
-            }
-            else if (item.icon) {
-                let drawableOrId = getDrawableOrResourceId(item.icon, null);
-                if (drawableOrId) {
-                    menuItem.setIcon(drawableOrId);
-                }
-                else {
-                    throw new Error("Error loading icon from " + item.icon);
-                }
-            }
+            menuItem["text"] = item.text + "";
 
-            let showAsAction = getShowAsAction(item);
-            menuItem.setShowAsAction(showAsAction);
+            this.nativeViewProtected.append(menuItem);
+
+            if (item.icon) {
+                menuItem["icon"] = item.icon;
+            }
         }
     }
 
     private static _setOnClickListener(item: ActionItem): void {
         const weakRef = new WeakRef(item);
-        item.actionView.android.setOnClickListener(new android.view.View.OnClickListener({
-            onClick: function (v: android.view.View) {
-                const owner = weakRef.get();
-                if (owner) {
-                    owner._raiseTap();
-                }
+
+        item.onclick = function (v: android.view.View) {
+            const owner = weakRef.get();
+            if (owner) {
+                owner._raiseTap();
             }
-        }));
+        };
     }
 
     public _onTitlePropertyChanged() {

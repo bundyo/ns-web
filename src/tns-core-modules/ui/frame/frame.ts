@@ -3,9 +3,10 @@ import { BackstackEntry, NavigationTransition, Observable } from ".";
 import { Page } from "../page";
 import { profile } from "../../profiling";
 
-import NSFrame from "../../../hypers/ns-frame.js";
+import { web } from "../../application/application.js";
 
 //Types.
+import NSFrame from "../../../hypers/ns-frame.js";
 import { FrameBase, View, layout, traceEnabled, traceWrite, traceError, traceCategories, isCategorySet, stack } from "./frame-common";
 
 import * as utils from "../../utils";
@@ -46,6 +47,7 @@ function getAttachListener() {
 
 export class Frame extends FrameBase {
 
+    private _context: any;
     private _web: NSFrame;
     private _containerViewId: number = -1;
     private _tearDownPending = false;
@@ -54,6 +56,7 @@ export class Frame extends FrameBase {
 
     constructor() {
         super();
+        this._context = {};
         this._web = document.createElement("ns-frame");
     }
 
@@ -132,18 +135,15 @@ export class Frame extends FrameBase {
         // set frameId here so that we could use it in fragment.transitions
         newEntry.frameId = this._web.frameId;
 
-        // const manager = this._getFragmentManager();
-        const clearHistory = newEntry.entry.clearHistory;
-        const currentEntry = this._currentEntry;
-
         // New Fragment
-        if (clearHistory) {
+        if (newEntry.entry.clearHistory) {
             navDepth = -1;
         }
 
         navDepth++;
 
         this.web.append(this._createPage(newEntry));
+        web.nativeApp.scheduleAnimation(this._currentEntry, newEntry, this.setCurrent.bind(this, newEntry, this._isBack));
     }
 
     _createPage(entry) {

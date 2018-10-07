@@ -96,7 +96,7 @@ export const createViewFromEntry = profile("createViewFromEntry", (entry: ViewEn
     } else if (entry.moduleName) {
         // Current app full path.
         const currentAppPath = knownFolders.currentApp().path;
-        
+
         // Full path of the module = current app full path + module name.
         const moduleNamePath = path.join(currentAppPath, entry.moduleName);
         const moduleExports = loadModule(moduleNamePath, entry);
@@ -108,7 +108,7 @@ export const createViewFromEntry = profile("createViewFromEntry", (entry: ViewEn
             return viewFromBuilder(moduleNamePath, moduleExports);
         }
     }
-    
+
     throw new Error("Failed to load page XML file for module: " + entry.moduleName);
 });
 
@@ -128,7 +128,7 @@ interface ModuleExports {
 const moduleCreateView = profile("module.createView", (moduleNamePath: string, moduleExports: ModuleExports): View => {
     const view = moduleExports.createPage();
     const cssFileName = resolveFileName(moduleNamePath, "css");
-    
+
     // If there is no cssFile only appCss will be applied at loaded.
     if (cssFileName) {
         view.addCssFile(cssFileName);

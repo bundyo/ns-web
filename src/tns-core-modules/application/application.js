@@ -154,7 +154,7 @@ class Application {
         }
     }
 
-    scheduleAnimation(currentEntry, nextEntry, callback) {
+    scheduleAnimation(currentEntry, nextEntry, callback, frame) {
         if (currentEntry) {
             var prevElement = currentEntry.resolvedPage.sender,
                 nextElement = nextEntry.resolvedPage.sender,
@@ -229,7 +229,7 @@ export class WebApplication extends observable.Observable {
     }
 
     init(webApp) {
-        if (this.nativeApp) {
+        if (this._nativeApp) {
             throw new Error("application.web already initialized.");
         }
 
@@ -309,7 +309,7 @@ let started = false;
 const createRootFrame = {value: true};
 let mainEntry;
 
-export let web;
+export const web = new WebApplication();
 
 function createRootView(v) {
     let rootView = v;
@@ -353,8 +353,7 @@ export function start(entry) {
         }
     }
 
-    if (!web || !web.nativeApp) {
-        web = new WebApplication();
+    if (!web.nativeApp) {
         setApplication(web);
 
         webApp.setEntry(entry);
