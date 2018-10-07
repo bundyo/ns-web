@@ -1,4 +1,12 @@
-﻿import { TextDecoration, TextAlignment, TextTransform } from ".";
+﻿import {
+    TextDecoration,
+    TextAlignment,
+    TextTransform,
+    paddingTopProperty,
+    Length,
+    paddingRightProperty,
+    paddingBottomProperty, paddingLeftProperty
+} from ".";
 import { Font } from "../styling/font";
 import {
     TextBaseCommon, textProperty, formattedTextProperty, textAlignmentProperty, textDecorationProperty,
@@ -56,6 +64,34 @@ export class TextBase extends TextBaseCommon {
 
     [lineHeightProperty.setNative](value: string) {
         this.nativeTextViewProtected.style.lineHeight = value;
+    }
+
+    [paddingTopProperty.getDefault](): Length {
+        return { value: this._defaultPaddingTop, unit: "px" }
+    }
+    [paddingTopProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingTop = value + "px";
+    }
+
+    [paddingRightProperty.getDefault](): Length {
+        return { value: this._defaultPaddingRight, unit: "px" }
+    }
+    [paddingRightProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingRight = value + "px";
+    }
+
+    [paddingBottomProperty.getDefault](): Length {
+        return { value: this._defaultPaddingBottom, unit: "px" }
+    }
+    [paddingBottomProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingBottom = value + "px";
+    }
+
+    [paddingLeftProperty.getDefault](): Length {
+        return { value: this._defaultPaddingLeft, unit: "px" }
+    }
+    [paddingLeftProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingLeft = value + "px";
     }
 
     setFormattedTextDecorationAndTransform() {

@@ -1,12 +1,16 @@
 import NSElement from "../../../../hypers/ns-element.js";
 
 import {
-    automationTextProperty, backgroundInternalProperty,
+    automationTextProperty,
+    backgroundInternalProperty,
     HorizontalAlignment,
     horizontalAlignmentProperty,
     isEnabledProperty,
     isUserInteractionEnabledProperty,
-    layout, Length, minHeightProperty, minWidthProperty,
+    layout,
+    Length,
+    minHeightProperty,
+    minWidthProperty,
     opacityProperty,
     originXProperty,
     originYProperty,
@@ -35,7 +39,13 @@ import {
     verticalAlignmentProperty,
     ViewCommon,
     Visibility,
-    visibilityProperty, zIndexProperty, EventData
+    visibilityProperty,
+    zIndexProperty,
+    EventData,
+    marginTopProperty,
+    marginRightProperty,
+    marginBottomProperty,
+    marginLeftProperty, widthProperty, heightProperty, PercentLength
 } from "./view-common";
 
 export * from "./view-common";
@@ -461,3 +471,95 @@ export class CustomLayoutView extends ContainerView {
         }
     }
 }
+
+const percentNotSupported = (view: android.view.View, value: number) => { throw new Error("PercentLength is not supported."); };
+
+function setProperty(property, view, value) {
+    view.style[property] = value;
+}
+
+function createNativePercentLengthProperty(options) {
+    const { getter, setter, auto = 0, property } = options;
+    let getPixels, setPercent;
+    if (getter) {
+        View.prototype[getter] = function (this: View): PercentLength {
+            if (options) {
+                //setPixels = options.setPixels;
+                getPixels = options.getPixels;
+                //setPercent = options.setPercent || percentNotSupported;
+                options = null;
+            }
+            const value = getPixels(this.nativeViewProtected);
+            if (value == auto) { // tslint:disable-line
+                return "auto";
+            } else {
+                return { value, unit: "px" };
+            }
+        }
+    }
+    if (setter) {
+        View.prototype[setter] = function (this: View, length: PercentLength) {
+            if (options) {
+                //setPixels = options.setPixels;
+                getPixels = options.getPixels;
+                setPercent = options.setPercent || percentNotSupported;
+                options = null;
+            }
+            if (length == "auto") { // tslint:disable-line
+                setProperty(property, this.nativeViewProtected, auto);
+            } else if (typeof length === "number") {
+                setProperty(property, this.nativeViewProtected, length * window.devicePixelRatio + "px");
+            } else if (length.unit == "dip") { // tslint:disable-line
+                setProperty(property, this.nativeViewProtected, length.value * window.devicePixelRatio + "px");
+            } else if (length.unit == "px") { // tslint:disable-line
+                setProperty(property, this.nativeViewProtected, layout.round(length.value) + length.unit);
+            } else if (length.unit == "%") { // tslint:disable-line
+                setProperty(property, this.nativeViewProtected, length.value + length.unit);
+            } else {
+                throw new Error(`Unsupported PercentLength ${length}`);
+            }
+        }
+    }
+}
+
+createNativePercentLengthProperty({
+    setter: marginTopProperty.setNative,
+    property: "marginTop",
+});
+
+createNativePercentLengthProperty({
+    setter: marginRightProperty.setNative,
+    property: "marginRight",
+});
+
+createNativePercentLengthProperty({
+    setter: marginBottomProperty.setNative,
+    property: "marginBottom",
+});
+
+createNativePercentLengthProperty({
+    setter: marginLeftProperty.setNative,
+    property: "marginLeft",
+});
+
+createNativePercentLengthProperty({
+    setter: widthProperty.setNative,
+    property: "width",
+    auto: -1, //android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+});
+
+createNativePercentLengthProperty({
+    setter: heightProperty.setNative,
+    property: "height",
+    auto: -1, //android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+});
+
+createNativePercentLengthProperty({
+    setter: "_setMinWidthNative",
+    property: "minWidth",
+});
+
+createNativePercentLengthProperty({
+    setter: "_setMinHeightNative",
+    property: "minHeight",
+});

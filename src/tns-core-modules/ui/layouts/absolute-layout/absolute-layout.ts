@@ -30,10 +30,10 @@ export class AbsoluteLayout extends AbsoluteLayoutBase {
     }
 
     [topProperty.setNative](value) {
-        this.nativeViewProtected.style.top = value;
+        this.nativeViewProtected.style.top = value + "px";
     }
 
     [leftProperty.setNative](value) {
-        this.nativeViewProtected.style.left = value;
+        this.nativeViewProtected.style.left = value + "px";
     }
 }
