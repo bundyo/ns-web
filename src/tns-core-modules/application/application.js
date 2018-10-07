@@ -174,6 +174,8 @@ class Application {
 
     scheduleAnimation(currentEntry, nextEntry, callback) {
         if (currentEntry) {
+            const transition = nextEntry.entry.transition;
+
             const prevElement = currentEntry.resolvedPage.nativeView,
                 nextElement = nextEntry.resolvedPage.nativeView,
                 parentElement = nextElement.parentElement,
@@ -188,7 +190,7 @@ class Application {
                     callback();
                 };
 
-            if (currentEntry.isBack) {
+            if (currentEntry.resolvedPage.frame._isBack) {
                 parentElement.classList.add("ns-fx-reverse");
             }
 
@@ -198,7 +200,7 @@ class Application {
             prevElement.classList.remove("ns-fx-hidden");
             nextElement.classList.remove("ns-fx-hidden");
 
-            parentElement.classList.add("ns-fx", "ns-fx-start", "ns-fx-slide");
+            parentElement.classList.add("ns-fx", "ns-fx-start", `ns-fx-${ transition ? (transition.name || transition) : "slide" }`);
             nextElement.offsetWidth;
 
             parentElement.transitionHandled = false;

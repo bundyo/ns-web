@@ -2,7 +2,7 @@
       xmlns:app="~/details-page"
       navigatedTo="pageNavigatedTo">
     <ActionBar title="Details">
-        <ActionItem android.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
+        <ActionItem web.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
     </ActionBar>
 
     <app:details-view title="{{ title }}" info="{{ info }}"/>

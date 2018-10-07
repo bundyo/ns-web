@@ -1,7 +1,7 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd"
       loaded="pageLoaded">
     <ActionBar class="action-bar" title="Tap Event">
-        <ActionItem android.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
+        <ActionItem web.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
     </ActionBar>
 
     <ScrollView>

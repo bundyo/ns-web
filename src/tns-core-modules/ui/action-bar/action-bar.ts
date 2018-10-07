@@ -26,7 +26,7 @@ const menuItemClickListener: any = function onClick(v) {
 };
 
 export class ActionItem extends ActionItemBase {
-    private _webPosition: Object = {
+    private _web: Object = {
         position: "actionBar",
         systemIcon: undefined
     };
@@ -56,10 +56,10 @@ export class ActionItem extends ActionItemBase {
     }
 
     public get web(): Object {
-        return this._webPosition;
+        return this._web;
     }
     public set web(value: Object) {
-        throw new Error("ActionItem.android is read-only");
+        throw new Error("ActionItem.settings is read-only");
     }
 
     public _getItemId() {
@@ -246,6 +246,10 @@ export class ActionBar extends ActionBarBase {
 
             if (item.icon) {
                 item.nativeViewProtected["icon"] = item.icon;
+            }
+
+            if (item.web["position"] === "left") {
+                item.nativeViewProtected["position"] = item.web["position"];
             }
 
             this.nativeViewProtected.append(item.nativeViewProtected);
