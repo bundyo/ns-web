@@ -2,6 +2,8 @@
     GridLayoutBase, ItemSpec, View, layout
 } from "./grid-layout-common";
 
+import NSGridLayout from "../../../../hypers/ns-grid-layout";
+
 export * from "./grid-layout-common";
 
 export class GridLayout extends GridLayoutBase {
@@ -10,9 +12,15 @@ export class GridLayout extends GridLayoutBase {
     private rowOffsets = new Array<number>();
     private map = new Map<View, MeasureSpecs>();
 
+    nativeViewProtected: NSGridLayout;
+
     constructor() {
         super();
         this.helper = new MeasureHelper(this);
+    }
+
+    createNativeView() {
+        return document.createElement("ns-grid-layout");
     }
 
     public _onRowAdded(itemSpec: ItemSpec) {
@@ -708,7 +716,7 @@ class MeasureHelper {
 
             this.fixColumns();
 
-            // Measure all elements that have star columns(already fixed), but no stars at the rows 
+            // Measure all elements that have star columns(already fixed), but no stars at the rows
             this.measureFixedColumnsNoStarRows();
 
             this.fixRows();
@@ -721,7 +729,7 @@ class MeasureHelper {
             this.fixRows();
         }
         else if (!fixColumns && fixRows) {
-            // Measure all elements that have star rows(already fixed) but no star at the columns 
+            // Measure all elements that have star rows(already fixed) but no star at the columns
             this.measureNoStarColumnsFixedRows();
 
             // Then

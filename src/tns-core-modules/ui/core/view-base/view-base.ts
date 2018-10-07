@@ -7,7 +7,7 @@ import { Order, FlexGrow, FlexShrink, FlexWrapBefore, AlignSelf } from "../../la
 import { Property, CssProperty, CssAnimationProperty, InheritedProperty, Style, clearInheritedProperties, propagateInheritableProperties, propagateInheritableCssProperties, initNativeView } from "../properties";
 import { Source } from "../../../utils/debug";
 import { Binding, BindingOptions, Observable, WrappedValue, PropertyChangeData, traceEnabled, traceWrite, traceCategories } from "../bindable";
-import { isIOS, isAndroid } from "../../../platform";
+import { isIOS, isAndroid, isWeb } from "../../../platform";
 import { layout } from "../../../utils";
 import { Length, paddingTopProperty, paddingRightProperty, paddingBottomProperty, paddingLeftProperty } from "../../styling/style-properties";
 
@@ -18,7 +18,7 @@ import { Color } from "../../../color";
 
 import { profile } from "../../../profiling";
 
-export { isIOS, isAndroid, layout, Color };
+export { isIOS, isAndroid, isWeb, layout, Color };
 export * from "../bindable";
 export * from "../properties";
 
@@ -651,7 +651,7 @@ export abstract class ViewBase extends Observable implements ViewBaseDefinition 
     }
 
     public resetNativeView(): void {
-        //    
+        //
     }
 
     private resetNativeViewInternal(): void {

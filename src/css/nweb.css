@@ -98,6 +98,14 @@ ns-ios {
     display: none;
 }
 
+ns-frame {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
 ns-page {
     display: flex;
     flex-direction: column;
@@ -106,6 +114,18 @@ ns-page {
     right: 0;
     top: 0;
     bottom: 0;
+}
+
+ns-page > * {
+    order: 5;
+}
+
+ns-page > ns-action-bar {
+    order: 0;
+}
+
+ns-page > ns-tab-view {
+    order: 10;
 }
 
 ns-action-bar {

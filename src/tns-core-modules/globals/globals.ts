@@ -1,6 +1,9 @@
 ﻿// Required by TypeScript compiler
 require("./decorators");
 
+const context: any = require.context("../../../app", true, /\.(js|css|xml|html)$/i);
+global.context = context;
+
 // Required by V8 snapshot generator
 if (!global.__extends) {
     global.__extends = function (d, b) {
@@ -78,23 +81,56 @@ global.registerWebpackModules = function registerWebpackModules(context: Context
     });
 }
 
-global.moduleExists = function (name: string): boolean {
-    return modules.has(name);
-}
+// global.moduleExists = function (name: string): boolean {
+//     return modules.has(name);
+// }
+//
+// global.loadModule = function (name: string): any {
+//     const loader = modules.get(name);
+//     if (loader) {
+//         return loader();
+//     }
+//     for (let resolver of (<any>global).moduleResolvers) {
+//         const result = resolver(name);
+//         if (result) {
+//             modules.set(name, () => result);
+//             return result;
+//         }
+//     }
+// }
 
-global.loadModule = function (name: string): any {
-    const loader = modules.get(name);
+global.moduleExists = function (name) {
+    let resolver;
+
+    try {
+        resolver = context.resolve("./" + name + ".js");
+    } catch (e) {
+        try {
+            resolver = context.resolve("./" + name + "/" + name + ".js");
+        } catch (e) {}
+    }
+
+    return modules.has(name) || !!resolver;
+};
+
+global.loadModule = function (name) {
+    let result,
+        loader = modules.get(name);
     if (loader) {
         return loader();
     }
-    for (let resolver of (<any>global).moduleResolvers) {
-        const result = resolver(name);
-        if (result) {
-            modules.set(name, () => result);
-            return result;
-        }
+    else {
+        //try {
+        result = context("./" + name + ".js");
+        //} catch (e) {
+        //    try {
+        //        result = context("./" + name + "/" + name + ".js");
+        //    } catch (e) {}
+        //}
+        modules.set(name, function () { return result; });
+        return result;
     }
-}
+};
 
 global.zonedCallback = function (callback: Function): Function {
     if ((<any>global).zone) {
@@ -145,59 +181,59 @@ function registerOnGlobalContext(name: string, module: string): void {
 
 let snapshotGlobals;
 export function install() {
-    if ((<any>global).__snapshot || (<any>global).__snapshotEnabled) {
-        if (!snapshotGlobals) {
-            // require in snapshot mode is cheap
-            var timer: typeof timerModule = require("timer");
-            var dialogs: typeof dialogsModule = require("ui/dialogs");
-            var xhr = require("xhr");
-            var fetch = require("fetch");
-
-            snapshotGlobals = snapshotGlobals || {
-                setTimeout: timer.setTimeout,
-                clearTimeout: timer.clearTimeout,
-                setInterval: timer.setInterval,
-                clearInterval: timer.clearInterval,
-
-                alert: dialogs.alert,
-                confirm: dialogs.confirm,
-                prompt: dialogs.prompt,
-                login: dialogs.login,
-                action: dialogs.action,
-
-                XMLHttpRequest: xhr.XMLHttpRequest,
-                FormData: xhr.FormData,
-
-                fetch: fetch.fetch,
-                Headers: fetch.Headers,
-                Request: fetch.Request,
-                Response: fetch.Response,
-            }
-        }
-        var consoleModule = require("console").Console;
-        // Object.assign call will fire an error when trying to write to a read-only property of an object, such as 'console'
-        global["console"] = global["console"] || new consoleModule();
-        Object.assign(global, snapshotGlobals);
-    } else {
-        registerOnGlobalContext("setTimeout", "timer");
-        registerOnGlobalContext("clearTimeout", "timer");
-        registerOnGlobalContext("setInterval", "timer");
-        registerOnGlobalContext("clearInterval", "timer");
-
-        registerOnGlobalContext("alert", "ui/dialogs");
-        registerOnGlobalContext("confirm", "ui/dialogs");
-        registerOnGlobalContext("prompt", "ui/dialogs");
-        registerOnGlobalContext("login", "ui/dialogs");
-        registerOnGlobalContext("action", "ui/dialogs");
-
-        registerOnGlobalContext("XMLHttpRequest", "xhr");
-        registerOnGlobalContext("FormData", "xhr");
-
-        registerOnGlobalContext("fetch", "fetch");
-        registerOnGlobalContext("Headers", "fetch");
-        registerOnGlobalContext("Request", "fetch");
-        registerOnGlobalContext("Response", "fetch");
-    }
+    // if ((<any>global).__snapshot || (<any>global).__snapshotEnabled) {
+    //     if (!snapshotGlobals) {
+    //         // require in snapshot mode is cheap
+    //         var timer: typeof timerModule = require("timer");
+    //         var dialogs: typeof dialogsModule = require("ui/dialogs");
+    //         var xhr = require("xhr");
+    //         var fetch = require("fetch");
+    //
+    //         snapshotGlobals = snapshotGlobals || {
+    //             setTimeout: timer.setTimeout,
+    //             clearTimeout: timer.clearTimeout,
+    //             setInterval: timer.setInterval,
+    //             clearInterval: timer.clearInterval,
+    //
+    //             alert: dialogs.alert,
+    //             confirm: dialogs.confirm,
+    //             prompt: dialogs.prompt,
+    //             login: dialogs.login,
+    //             action: dialogs.action,
+    //
+    //             XMLHttpRequest: xhr.XMLHttpRequest,
+    //             FormData: xhr.FormData,
+    //
+    //             fetch: fetch.fetch,
+    //             Headers: fetch.Headers,
+    //             Request: fetch.Request,
+    //             Response: fetch.Response,
+    //         }
+    //     }
+    //     var consoleModule = require("console").Console;
+    //     // Object.assign call will fire an error when trying to write to a read-only property of an object, such as 'console'
+    //     global["console"] = global["console"] || new consoleModule();
+    //     Object.assign(global, snapshotGlobals);
+    // } else {
+        // registerOnGlobalContext("setTimeout", "timer");
+        // registerOnGlobalContext("clearTimeout", "timer");
+        // registerOnGlobalContext("setInterval", "timer");
+        // registerOnGlobalContext("clearInterval", "timer");
+        //
+        // registerOnGlobalContext("alert", "ui/dialogs");
+        // registerOnGlobalContext("confirm", "ui/dialogs");
+        // registerOnGlobalContext("prompt", "ui/dialogs");
+        // registerOnGlobalContext("login", "ui/dialogs");
+        // registerOnGlobalContext("action", "ui/dialogs");
+        //
+        // registerOnGlobalContext("XMLHttpRequest", "xhr");
+        // registerOnGlobalContext("FormData", "xhr");
+        //
+        // registerOnGlobalContext("fetch", "fetch");
+        // registerOnGlobalContext("Headers", "fetch");
+        // registerOnGlobalContext("Request", "fetch");
+        // registerOnGlobalContext("Response", "fetch");
+//    }
 }
 install();
 

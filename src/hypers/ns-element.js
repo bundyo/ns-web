@@ -43,12 +43,7 @@ export default class NSElement extends HyperHTMLElement {
 
     // using the inherited handleEvent,
     // events can be easily defined as methods with `on` prefix.
-    onclick(e) {
-        // `this` refers to the current custom element
-        console.log(this, 'click', e.target);
-        // state handling, updates the view
-        this.setState({clicks: this.state.clicks + 1});
-    }
+    onclick(e) {}
 
     // alternatively, you can specify a `data-call`
     // attribute with the name of the method to invoke

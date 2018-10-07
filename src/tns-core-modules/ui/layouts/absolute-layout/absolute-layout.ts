@@ -1,8 +1,16 @@
 ﻿import { AbsoluteLayoutBase, View, layout, Length } from "./absolute-layout-common";
 
+import NSAbsoluteLayout from "../../../../hypers/ns-absolute-layout";
+
 export * from "./absolute-layout-common";
 
 export class AbsoluteLayout extends AbsoluteLayoutBase {
+
+    nativeViewProtected: NSAbsoluteLayout;
+
+    createNativeView() {
+        return document.createElement("ns-absolute-layout");
+    }
 
     onLeftChanged(view: View, oldValue: Length, newValue: Length) {
         this.requestLayout();

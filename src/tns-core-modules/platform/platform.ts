@@ -7,6 +7,7 @@ const MIN_TABLET_PIXELS = 600;
 export module platformNames {
     export const android = "Android";
     export const ios = "iOS";
+    export const web = "Web";
 }
 
 class Device implements DeviceDefinition {
@@ -20,12 +21,12 @@ class Device implements DeviceDefinition {
     private _region: string;
 
     get os(): string {
-        return platformNames.android;
+        return platformNames.web;
     }
 
     get manufacturer(): string {
         if (!this._manufacturer) {
-            this._manufacturer = android.os.Build.MANUFACTURER;
+            this._manufacturer = "{N}";
         }
 
         return this._manufacturer;
@@ -33,7 +34,7 @@ class Device implements DeviceDefinition {
 
     get osVersion(): string {
         if (!this._osVersion) {
-            this._osVersion = android.os.Build.VERSION.RELEASE;
+            this._osVersion = "1";
         }
 
         return this._osVersion;
@@ -41,7 +42,7 @@ class Device implements DeviceDefinition {
 
     get model(): string {
         if (!this._model) {
-            this._model = android.os.Build.MODEL;
+            this._model = "Web Model";
         }
 
         return this._model;
@@ -49,7 +50,7 @@ class Device implements DeviceDefinition {
 
     get sdkVersion(): string {
         if (!this._sdkVersion) {
-            this._sdkVersion = android.os.Build.VERSION.SDK;
+            this._sdkVersion = navigator.userAgent;
         }
 
         return this._sdkVersion;
@@ -57,7 +58,7 @@ class Device implements DeviceDefinition {
 
     get deviceType(): "Phone" | "Tablet" {
         if (!this._deviceType) {
-            const dips = Math.min(screen.mainScreen.widthPixels, screen.mainScreen.heightPixels) / screen.mainScreen.scale;
+            const dips = Math.min(window.innerWidth, window.innerHeight) / window.devicePixelRatio;
             // If the device has more than 600 dips it is considered to be a tablet.
             if (dips >= MIN_TABLET_PIXELS) {
                 this._deviceType = "Tablet";
@@ -72,11 +73,10 @@ class Device implements DeviceDefinition {
 
     get uuid(): string {
         if (!this._uuid) {
-            const nativeApp = <android.app.Application>appModule.android.nativeApp;
-            this._uuid = android.provider.Settings.Secure.getString(
-                nativeApp.getContentResolver(),
-                android.provider.Settings.Secure.ANDROID_ID
-            );
+            this._uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         }
 
         return this._uuid;
@@ -84,7 +84,7 @@ class Device implements DeviceDefinition {
 
     get language(): string {
         if (!this._language) {
-            this._language = java.util.Locale.getDefault().getLanguage().replace("_", "-");
+            this._language = "en_US";
         }
 
         return this._language;
@@ -92,7 +92,7 @@ class Device implements DeviceDefinition {
 
     get region(): string {
         if (!this._region) {
-            this._region = java.util.Locale.getDefault().getCountry();
+            this._region = "bg";
         }
 
         return this._region;
@@ -100,46 +100,33 @@ class Device implements DeviceDefinition {
 }
 
 class MainScreen implements ScreenMetricsDefinition {
-    private _metrics: android.util.DisplayMetrics;
-
-    private reinitMetrics(): void {
-        if (!this._metrics) {
-            this._metrics = new android.util.DisplayMetrics();
-        }
-        this.initMetrics();
-    }
-
-    private initMetrics(): void {
-        const nativeApp = <android.app.Application>appModule.getNativeApplication();
-        nativeApp.getSystemService(android.content.Context.WINDOW_SERVICE).getDefaultDisplay().getRealMetrics(this._metrics);
-    }
-
-    private get metrics(): android.util.DisplayMetrics {
-        if (!this._metrics) {
-            // NOTE: This will be memory leak but we MainScreen is singleton
-            appModule.on("cssChanged", this.reinitMetrics, this);
-            appModule.on(appModule.orientationChangedEvent, this.reinitMetrics, this);
-
-            this._metrics = new android.util.DisplayMetrics();
-            this.initMetrics();
-        }
-        return this._metrics;
+    private get metrics() {
+        // if (!this._metrics) {
+        //     // NOTE: This will be memory leak but we MainScreen is singleton
+        //     appModule.on("cssChanged", this.reinitMetrics, this);
+        //     appModule.on(appModule.orientationChangedEvent, this.reinitMetrics, this);
+        //
+        //     this._metrics = new android.util.DisplayMetrics();
+        //     this.initMetrics();
+        // }
+        // return this._metrics;
+        return "";
     }
 
     get widthPixels(): number {
-        return this.metrics.widthPixels;
+        return window.innerWidth;
     }
     get heightPixels(): number {
-        return this.metrics.heightPixels;
+        return window.innerHeight;
     }
     get scale(): number {
-        return this.metrics.density;
+        return window.devicePixelRatio;
     }
     get widthDIPs(): number {
-        return this.metrics.widthPixels / this.metrics.density;
+        return window.innerWidth / window.devicePixelRatio;
     }
     get heightDIPs(): number {
-        return this.metrics.heightPixels / this.metrics.density;
+        return window.innerHeight / window.devicePixelRatio;
     }
 
 }
@@ -150,4 +137,4 @@ export module screen {
     export const mainScreen = new MainScreen();
 }
 
-export const isAndroid = true;
+export const isWeb = true;

@@ -1,385 +1,447 @@
-import { IOSActionItemSettings, ActionItem as ActionItemDefinition } from ".";
-import { ActionItemBase, ActionBarBase, isVisible, View, colorProperty, backgroundColorProperty, backgroundInternalProperty, flatProperty, layout, Color } from "./action-bar-common";
-import { ImageSource, fromFileOrResource } from "../../image-source";
-import { ios as iosUtils } from "../../utils";
+import NSActionBar from "../../../hypers/ns-action-bar";
+import NSActionItem from "../../../hypers/ns-action-item";
+import NSNavigationButton from "../../../hypers/ns-navigation-button";
+
+import { ActionItemBase, ActionBarBase, isVisible, View, layout, colorProperty, flatProperty, Color } from "./action-bar-common";
+import { RESOURCE_PREFIX } from "../../utils";
+import { fromFileOrResource } from "../../image-source";
+import * as application from "../../application";
 
 export * from "./action-bar-common";
 
-const majorVersion = iosUtils.MajorVersion;
-const UNSPECIFIED = layout.makeMeasureSpec(0, layout.UNSPECIFIED);
+const R_ID_HOME = 0x0102002c;
+const ACTION_ITEM_ID_OFFSET = 10000;
+const DEFAULT_ELEVATION = 4;
 
-class TapBarItemHandlerImpl extends NSObject {
-    private _owner: WeakRef<ActionItemDefinition>;
+let actionItemIdGenerator = ACTION_ITEM_ID_OFFSET;
+function generateItemId(): number {
+    actionItemIdGenerator++;
+    return actionItemIdGenerator;
+}
 
-    public static initWithOwner(owner: WeakRef<ActionItemDefinition>): TapBarItemHandlerImpl {
-        let handler = <TapBarItemHandlerImpl>TapBarItemHandlerImpl.new();
-        handler._owner = owner;
-        return handler;
+let MenuItemClickListener: any;
+
+function initializeMenuItemClickListener(): void {
+    const owner = this;
+
+    if (MenuItemClickListener) {
+        return;
     }
 
-    public tap(args) {
-        let owner = this._owner.get();
-        if (owner) {
-            owner._raiseTap();
+    class MenuItemClickListenerImpl {
+        onMenuItemClick(item): boolean {
+            let itemId = item.getItemId();
+            return owner._onWebItemSelected(itemId);
         }
     }
 
-    public static ObjCExposedMethods = {
-        "tap": { returns: interop.types.void, params: [interop.types.id] }
-    };
+    MenuItemClickListener = MenuItemClickListenerImpl;
 }
 
 export class ActionItem extends ActionItemBase {
-    private _ios: IOSActionItemSettings = {
-        position: "left",
+    private _webPosition: Object = {
+        position: "actionBar",
         systemIcon: undefined
     };
 
-    public get ios(): IOSActionItemSettings {
-        return this._ios;
+    private _itemId;
+    constructor() {
+        super();
+        this._itemId = generateItemId();
     }
-    public set ios(value: IOSActionItemSettings) {
-        throw new Error("ActionItem.ios is read-only");
+
+    public get web(): Object {
+        return this._webPosition;
+    }
+    public set web(value: Object) {
+        throw new Error("ActionItem.android is read-only");
+    }
+
+    public _getItemId() {
+        return this._itemId;
+    }
+}
+
+export class WebActionBarSettings {
+    private _actionBar: ActionBar;
+    private _icon: string;
+    private _iconVisibility: "auto" | "never" | "always" = "auto";
+
+    constructor(actionBar: ActionBar) {
+        this._actionBar = actionBar;
+    }
+
+    public get icon(): string {
+        return this._icon;
+    }
+    public set icon(value: string) {
+        if (value !== this._icon) {
+            this._icon = value;
+            this._actionBar._onIconPropertyChanged();
+        }
+    }
+
+    public get iconVisibility(): "auto" | "never" | "always" {
+        return this._iconVisibility;
+    }
+    public set iconVisibility(value: "auto" | "never" | "always") {
+        if (value !== this._iconVisibility) {
+            this._iconVisibility = value;
+            this._actionBar._onIconPropertyChanged();
+        }
     }
 }
 
 export class NavigationButton extends ActionItem {
-    _navigationItem: UINavigationItem;
-
-    public _onVisibilityChanged(visibility: string): void {
-        if (this._navigationItem) {
-            const visible: boolean = visibility === "visible";
-            this._navigationItem.setHidesBackButtonAnimated(!visible, true);
-        }
-    }
 }
 
 export class ActionBar extends ActionBarBase {
+    private _web: WebActionBarSettings;
+    public nativeViewProtected: NSActionBar;
 
-    get ios(): UIView {
-        const page = this.page;
-        if (!page || !page.parent) {
-            return;
-        }
-
-        const viewController = (<UIViewController>page.ios);
-        if (viewController.navigationController !== null) {
-            return viewController.navigationController.navigationBar;
-        }
-
-        return null;
+    constructor() {
+        super();
+        this._web = new WebActionBarSettings(this);
     }
 
-    public createNativeView(): UIView {
-        return this.ios;
+    get web(): WebActionBarSettings {
+        return this._web;
     }
 
     public _addChildFromBuilder(name: string, value: any) {
         if (value instanceof NavigationButton) {
             this.navigationButton = value;
-        } else if (value instanceof ActionItem) {
+        }
+        else if (value instanceof ActionItem) {
             this.actionItems.addItem(value);
-        } else if (value instanceof View) {
+        }
+        else if (value instanceof View) {
             this.titleView = value;
         }
     }
 
-    public get _getActualSize(): { width: number, height: number } {
-        const navBar = this.ios;
-        if (!navBar) {
-            return { width: 0, height: 0 };
-        }
-
-        const frame = navBar.frame;
-        const size = frame.size;
-        const width = layout.toDevicePixels(size.width);
-        const height = layout.toDevicePixels(size.height);
-        return { width, height };
+    public createNativeView() {
+        return document.createElement("ns-action-bar");
     }
 
-    public layoutInternal(): void {
-        const { width, height } = this._getActualSize;
-        const widthSpec = layout.makeMeasureSpec(width, layout.EXACTLY);
-        const heightSpec = layout.makeMeasureSpec(height, layout.EXACTLY);
+    public initNativeView(): void {
+        super.initNativeView();
+        const nativeView = this.nativeViewProtected;
+        initializeMenuItemClickListener();
+        const menuItemClickListener = new MenuItemClickListener(this);
+        nativeView.onclick = menuItemClickListener;
+        (<any>nativeView).menuItemClickListener = menuItemClickListener;
+    }
 
-        this.measure(widthSpec, heightSpec);
-        this.layout(0, 0, width, height, false);
+    public disposeNativeView() {
+        (<any>this.nativeViewProtected).menuItemClickListener.owner = null;
+        super.disposeNativeView();
+    }
+
+    public onLoaded() {
+        super.onLoaded();
+        this.update();
     }
 
     public update() {
+        if (!this.nativeViewProtected) {
+            return;
+        }
+
         const page = this.page;
-        // Page should be attached to frame to update the action bar.
-        if (!page || !page.frame) {
+        if (!page.frame || !page.frame._getNavBarVisible(page)) {
+            this.nativeViewProtected.style.display = "none";
+
+            // If action bar is hidden - no need to fill it with items.
             return;
         }
 
-        const viewController = (<UIViewController>page.ios);
-        const navigationItem: UINavigationItem = viewController.navigationItem;
-        const navController = <UINavigationController>viewController.navigationController;
+        this.nativeViewProtected.style.display = "";
 
-        if (!navController) {
-            return;
-        }
+        // Add menu items
+        this._addActionItems();
 
-        const navigationBar = navController.navigationBar;
-        let previousController: UIViewController;
+        // Set title
+        this._updateTitleAndTitleView();
 
-        // Set Title
-        navigationItem.title = this.title;
-        const titleView = this.titleView;
-        if (titleView && titleView.ios) {
-            navigationItem.titleView = titleView.ios;
-        } else {
-            navigationItem.titleView = null;
-        }
+        // Set home icon
+        this._updateIcon();
 
-        // Find previous ViewController in the navigation stack
-        const indexOfViewController = navController.viewControllers.indexOfObject(viewController);
-        if (indexOfViewController > 0 && indexOfViewController < navController.viewControllers.count) {
-            previousController = navController.viewControllers[indexOfViewController - 1];
-        }
-
-        // Set back button text
-        if (previousController) {
-            if (this.navigationButton) {
-                let tapHandler = TapBarItemHandlerImpl.initWithOwner(new WeakRef(this.navigationButton));
-                let barButtonItem = UIBarButtonItem.alloc().initWithTitleStyleTargetAction(this.navigationButton.text + "", UIBarButtonItemStyle.Plain, tapHandler, "tap");
-                previousController.navigationItem.backBarButtonItem = barButtonItem;
-            } else {
-                previousController.navigationItem.backBarButtonItem = null;
-            }
-        }
-
-        // Set back button image
-        let img: ImageSource;
-        if (this.navigationButton && isVisible(this.navigationButton) && this.navigationButton.icon) {
-            img = fromFileOrResource(this.navigationButton.icon);
-        }
-
-        // TODO: This could cause issue when canceling BackEdge gesture - we will change the backIndicator to
-        // show the one from the old page but the new page will still be visible (because we canceled EdgeBackSwipe gesutre)
-        // Consider moving this to new method and call it from - navigationControllerDidShowViewControllerAnimated.
-        if (img && img.ios) {
-            let image = img.ios.imageWithRenderingMode(UIImageRenderingMode.AlwaysOriginal);
-            navigationBar.backIndicatorImage = image;
-            navigationBar.backIndicatorTransitionMaskImage = image;
-        } else {
-            navigationBar.backIndicatorImage = null;
-            navigationBar.backIndicatorTransitionMaskImage = null;
-        }
-
-        // Set back button visibility
-        if (this.navigationButton) {
-            this.navigationButton._navigationItem = navigationItem;
-            navigationItem.setHidesBackButtonAnimated(!isVisible(this.navigationButton), false);
-        }
-
-        // Populate action items
-        this.populateMenuItems(navigationItem);
-
-        // update colors explicitly - they may have to be cleared form a previous page
-        this.updateColors(navigationBar);
-
-        // the 'flat' property may have changed in between pages
-        this.updateFlatness(navigationBar);
-
-        if (!this.isLayoutValid) {
-            this.layoutInternal();
-        }
+        // Set navigation button
+        this._updateNavigationButton();
     }
 
-    private populateMenuItems(navigationItem: UINavigationItem) {
-        const items = this.actionItems.getVisibleItems();
-        const leftBarItems = [];
-        const rightBarItems = [];
+    public _onWebItemSelected(itemId: number): boolean {
+        // Handle home button
+        if (this.navigationButton && itemId === R_ID_HOME) {
+            this.navigationButton._raiseTap();
+            return true;
+        }
+
+        // Find item with the right ID;
+        let menuItem: ActionItem = undefined;
+        let items = this.actionItems.getItems();
         for (let i = 0; i < items.length; i++) {
-            const barButtonItem = this.createBarButtonItem(items[i]);
-            if (items[i].ios.position === "left") {
-                leftBarItems.push(barButtonItem);
-            } else {
-                rightBarItems.splice(0, 0, barButtonItem);
+            if ((<ActionItem>items[i])._getItemId() === itemId) {
+                menuItem = <ActionItem>items[i];
+                break;
             }
         }
 
-        navigationItem.setLeftBarButtonItemsAnimated(<any>leftBarItems, false);
-        navigationItem.setRightBarButtonItemsAnimated(<any>rightBarItems, false);
-        if (leftBarItems.length > 0) {
-            navigationItem.leftItemsSupplementBackButton = true;
+        if (menuItem) {
+            menuItem._raiseTap();
+            return true;
+        }
+
+        return false;
+    }
+
+    public _updateNavigationButton() {
+        const navButton = this.navigationButton;
+        if (navButton && isVisible(navButton)) {
+            const systemIcon = navButton["web"].systemIcon;
+            // if (systemIcon !== undefined) {
+            //     // Try to look in the system resources.
+            //     const systemResourceId = getSystemResourceId(systemIcon);
+            //     if (systemResourceId) {
+            //         this.nativeViewProtected.setNavigationIcon(systemResourceId);
+            //     }
+            // }
+            // else if (navButton.icon) {
+            //     let drawableOrId = getDrawableOrResourceId(navButton.icon, appResources);
+            //     this.nativeViewProtected.setNavigationIcon(drawableOrId);
+            // }
+
+            // Set navigation content descripion, used by screen readers for the vision-impaired users
+            this.nativeViewProtected.text = navButton.text || null;
+
+            let navBtn = new WeakRef(navButton);
+            this.nativeViewProtected.onclick = function (v) {
+                let owner = navBtn.get();
+                if (owner) {
+                    owner._raiseTap();
+                }
+            };
+        }
+        else {
+            //this.nativeViewProtected.setNavigationIcon(null);
         }
     }
 
-    private createBarButtonItem(item: ActionItemDefinition): UIBarButtonItem {
-        const tapHandler = TapBarItemHandlerImpl.initWithOwner(new WeakRef(item));
-        // associate handler with menuItem or it will get collected by JSC.
-        (<any>item).handler = tapHandler;
-
-        let barButtonItem: UIBarButtonItem;
-        if (item.actionView && item.actionView.ios) {
-            let recognizer = UITapGestureRecognizer.alloc().initWithTargetAction(tapHandler, "tap");
-            item.actionView.ios.addGestureRecognizer(recognizer);
-            barButtonItem = UIBarButtonItem.alloc().initWithCustomView(item.actionView.ios);
-        } else if (item.ios.systemIcon !== undefined) {
-            let id: number = item.ios.systemIcon;
-            if (typeof id === "string") {
-                id = parseInt(id);
-            }
-
-            barButtonItem = UIBarButtonItem.alloc().initWithBarButtonSystemItemTargetAction(id, tapHandler, "tap");
-        } else if (item.icon) {
-            const img = fromFileOrResource(item.icon);
-            if (img && img.ios) {
-                barButtonItem = UIBarButtonItem.alloc().initWithImageStyleTargetAction(img.ios, UIBarButtonItemStyle.Plain, tapHandler, "tap");
-            } else {
-                throw new Error("Error loading icon from " + item.icon);
-            }
-        } else {
-            barButtonItem = UIBarButtonItem.alloc().initWithTitleStyleTargetAction(item.text + "", UIBarButtonItemStyle.Plain, tapHandler, "tap");
-        }
-
-        if (item.text) {
-            barButtonItem.isAccessibilityElement = true;
-            barButtonItem.accessibilityLabel = item.text;
-            barButtonItem.accessibilityTraits = UIAccessibilityTraitButton;
-        }
-
-        return barButtonItem;
+    public _updateIcon() {
+        this.nativeViewProtected.icon = this.web.icon;
+        // let visibility = getIconVisibility(this.android.iconVisibility);
+        // if (visibility) {
+        //     let icon = this.web.icon;
+        //     if (icon !== undefined) {
+        //         let drawableOrId = getDrawableOrResourceId(icon, appResources);
+        //         if (drawableOrId) {
+        //             this.nativeViewProtected.setLogo(drawableOrId);
+        //         }
+        //     }
+        //     else {
+        //         let defaultIcon = application.android.nativeApp.getApplicationInfo().icon;
+        //         this.nativeViewProtected.setLogo(defaultIcon);
+        //     }
+        // }
+        // else {
+        //     this.nativeViewProtected.setLogo(null);
+        // }
     }
 
-    private updateColors(navBar: UINavigationBar) {
-        const color = this.color;
-        if (color) {
-            navBar.titleTextAttributes = <any>{ [NSForegroundColorAttributeName]: color.ios };
-            navBar.tintColor = color.ios;
-        } else {
-            navBar.titleTextAttributes = null;
-            navBar.tintColor = null;
-        }
+    public _updateTitleAndTitleView() {
+        this.nativeViewProtected.title = this.title;
+        // if (!this.titleView) {
+        //     // No title view - show the title
+        //     let title = this.title;
+        //     if (title !== undefined) {
+        //         this.nativeViewProtected.setTitle(title);
+        //     } else {
+        //         let appContext = application.android.context;
+        //         let appInfo = appContext.getApplicationInfo();
+        //         let appLabel = appContext.getPackageManager().getApplicationLabel(appInfo);
+        //         if (appLabel) {
+        //             this.nativeViewProtected.setTitle(appLabel);
+        //         }
+        //     }
+        // }
+    }
 
-        const bgColor = <Color>this.backgroundColor;
-        navBar.barTintColor = bgColor ? bgColor.ios : null;
+    public _addActionItems() {
+        //let menu = this.nativeViewProtected.getMenu();
+        let items = this.actionItems.getVisibleItems();
+
+        const abItems = this.nativeViewProtected.querySelectorAll("ns-action-item");
+
+        abItems.forEach((item) => item.remove());
+
+        for (let i = 0; i < items.length; i++) {
+            let item = <ActionItem>items[i];
+            let menuItem = document.createElement("ns-action-item");
+
+            menuItem["text"] = item.text + "";
+
+            this.nativeViewProtected.append(menuItem);
+
+            if (item.icon) {
+                menuItem["icon"] = item.icon;
+            }
+        }
+    }
+
+    private static _setOnClickListener(item: ActionItem): void {
+        const weakRef = new WeakRef(item);
+
+        item.onclick = function (v: android.view.View) {
+            const owner = weakRef.get();
+            if (owner) {
+                owner._raiseTap();
+            }
+        };
     }
 
     public _onTitlePropertyChanged() {
-        const page = this.page;
-        if (!page) {
-            return;
-        }
-
-        if (page.frame) {
-            page.frame._updateActionBar();
-        }
-
-        let navigationItem: UINavigationItem = (<UIViewController>page.ios).navigationItem;
-        navigationItem.title = this.title;
-    }
-
-    private updateFlatness(navBar: UINavigationBar) {
-        if (this.flat) {
-            navBar.setBackgroundImageForBarMetrics(UIImage.new(), UIBarMetrics.Default);
-            navBar.shadowImage = UIImage.new();
-            navBar.translucent = false;
-        } else {
-            navBar.setBackgroundImageForBarMetrics(null, null);
-            navBar.shadowImage = null;
-            navBar.translucent = true;
+        if (this.nativeViewProtected) {
+            this._updateTitleAndTitleView();
         }
     }
 
-    public onMeasure(widthMeasureSpec: number, heightMeasureSpec: number) {
-        const width = layout.getMeasureSpecSize(widthMeasureSpec);
-        const height = layout.getMeasureSpecSize(heightMeasureSpec);
-
-        if (this.titleView) {
-            View.measureChild(this, this.titleView, UNSPECIFIED, UNSPECIFIED);
+    public _onIconPropertyChanged() {
+        if (this.nativeViewProtected) {
+            this._updateIcon();
         }
+    }
 
-        this.actionItems.getItems().forEach((actionItem) => {
-            const actionView = actionItem.actionView;
-            if (actionView) {
-                View.measureChild(this, actionView, UNSPECIFIED, UNSPECIFIED);
+    public _addViewToNativeVisualTree(child: View, atIndex: number = Number.MAX_VALUE): boolean {
+        super._addViewToNativeVisualTree(child);
+
+        if (this.nativeViewProtected && child.nativeViewProtected) {
+            if (atIndex >= this.nativeViewProtected.getChildCount()) {
+                this.nativeViewProtected.addView(child.nativeViewProtected);
             }
-        });
+            else {
+                this.nativeViewProtected.addView(child.nativeViewProtected, atIndex);
+            }
+            return true;
+        }
 
-        // We ignore our width/height, minWidth/minHeight dimensions because it is against Apple policy to change height of NavigationBar.
-        this.setMeasuredDimension(width, height);
+        return false;
     }
 
-    public onLayout(left: number, top: number, right: number, bottom: number) {
-        const titleView = this.titleView;
-        if (titleView) {
-            if (majorVersion > 10) {
-                // On iOS 11 titleView is wrapped in another view that is centered with constraints.
-                View.layoutChild(this, titleView, 0, 0, titleView.getMeasuredWidth(), titleView.getMeasuredHeight());
+    public _removeViewFromNativeVisualTree(child: View): void {
+        super._removeViewFromNativeVisualTree(child);
+
+        if (this.nativeViewProtected && child.nativeViewProtected) {
+            this.nativeViewProtected.removeView(child.nativeViewProtected);
+        }
+    }
+
+    [colorProperty.getDefault](): number {
+        const nativeView = this.nativeViewProtected;
+        if (!defaultTitleTextColor) {
+            let tv = getAppCompatTextView(nativeView);
+            if (!tv) {
+                const title = nativeView.getTitle();
+                // setTitle will create AppCompatTextView internally;
+                nativeView.setTitle("");
+                tv = getAppCompatTextView(nativeView);
+                if (title) {
+                    // restore title.
+                    nativeView.setTitle(title);
+                }
+            }
+
+            // Fallback to hardcoded falue if we don't find TextView instance...
+            // using new TextView().getTextColors().getDefaultColor() returns different value: -1979711488
+            //defaultTitleTextColor = tv ? tv.getTextColors().getDefaultColor() : -570425344;
+        }
+
+        return defaultTitleTextColor;
+    }
+    [colorProperty.setNative](value: number | Color) {
+        const color = value instanceof Color ? value.android : value;
+        this.nativeViewProtected.setTitleTextColor(color);
+    }
+
+    [flatProperty.setNative](value: boolean) {
+        const compat = <any>android.support.v4.view.ViewCompat;
+        if (compat.setElevation) {
+            if (value) {
+                compat.setElevation(this.nativeViewProtected, 0);
             } else {
-                // On iOS <11 titleView is direct child of UINavigationBar so we give it full width and leave
-                // the layout to center it.
-                View.layoutChild(this, titleView, 0, 0, right - left, bottom - top);
+                const val = DEFAULT_ELEVATION * layout.getDisplayDensity();
+                compat.setElevation(this.nativeViewProtected, val);
             }
         }
+    }
+}
 
-        this.actionItems.getItems().forEach((actionItem) => {
-            const actionView = actionItem.actionView;
-            if (actionView && actionView.ios) {
-                const measuredWidth = actionView.getMeasuredWidth();
-                const measuredHeight = actionView.getMeasuredHeight();
-                View.layoutChild(this, actionView, 0, 0, measuredWidth, measuredHeight);
-            }
-        });
+function getAppCompatTextView(toolbar: android.support.v7.widget.Toolbar): typeof Object {
+    // for (let i = 0, count = toolbar.getChildCount(); i < count; i++) {
+    //     const child = toolbar.getChildAt(i);
+    //     if (child instanceof AppCompatTextView) {
+    //         return child;
+    //     }
+    // }
+    //
+    return null;
+}
 
-        super.onLayout(left, top, right, bottom);
+ActionBar.prototype.recycleNativeView = "auto";
+
+let defaultTitleTextColor: number;
+
+function getDrawableOrResourceId(icon: string, resources: android.content.res.Resources): any {
+    if (typeof icon !== "string") {
+        return undefined;
     }
 
-    public layoutNativeView(left: number, top: number, right: number, bottom: number) {
-        return;
-    }
-
-    private get navBar(): UINavigationBar {
-        const page = this.page;
-        // Page should be attached to frame to update the action bar.
-        if (!page || !page.frame) {
-            return undefined;
-        }
-
-        return (<UINavigationController>page.frame.ios.controller).navigationBar;
-    }
-
-    [colorProperty.getDefault](): UIColor {
-        return null;
-    }
-    [colorProperty.setNative](color: Color) {
-        const navBar = this.navBar;
-        if (color) {
-            navBar.tintColor = color.ios;
-            navBar.titleTextAttributes = <any>{ [NSForegroundColorAttributeName]: color.ios };
-        } else {
-            navBar.tintColor = null;
-            navBar.titleTextAttributes = null;
+    if (icon.indexOf(RESOURCE_PREFIX) === 0) {
+        let resourceId: number = resources.getIdentifier(icon.substr(RESOURCE_PREFIX.length), "drawable", application.android.packageName);
+        if (resourceId > 0) {
+            return resourceId;
         }
     }
+    else {
+        let drawable: android.graphics.drawable.BitmapDrawable;
 
-    [backgroundColorProperty.getDefault](): UIColor {
-        // This getter is never called.
-        // CssAnimationProperty use default value form their constructor.
-        return null;
-    }
-    [backgroundColorProperty.setNative](value: UIColor | Color) {
-        let navBar = this.navBar;
-        if (navBar) {
-            let color = value instanceof Color ? value.ios : value;
-            navBar.barTintColor = color;
+        let is = fromFileOrResource(icon);
+        if (is) {
+            drawable = new android.graphics.drawable.BitmapDrawable(is.android);
         }
+
+        return drawable;
     }
 
-    [backgroundInternalProperty.getDefault](): UIColor {
-        return null;
-    }
-    [backgroundInternalProperty.setNative](value: UIColor) { // tslint:disable-line
-    }
+    return undefined;
+}
 
-    [flatProperty.setNative](value: boolean) { // tslint:disable-line
-        const navBar = this.navBar;
-        if (navBar) {
-            this.updateFlatness(navBar);
-        }
+function getShowAsAction(menuItem: ActionItem): number {
+    switch (menuItem.android.position) {
+        case "actionBarIfRoom":
+            return android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM;
+
+        case "popup":
+            return android.view.MenuItem.SHOW_AS_ACTION_NEVER;
+
+        case "actionBar":
+        default:
+            return android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
     }
+}
+
+function getIconVisibility(iconVisibility: string): boolean {
+    switch (iconVisibility) {
+        case "always":
+            return true;
+
+        case "auto":
+        case "never":
+        default:
+            return false;
+    }
+}
+
+function getSystemResourceId(systemIcon: string): number {
+    return android.content.res.Resources.getSystem().getIdentifier(systemIcon, "drawable", "android");
 }

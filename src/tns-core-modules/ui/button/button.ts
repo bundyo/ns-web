@@ -1,247 +1,114 @@
-﻿import { ControlStateChangeListener } from "../core/control-state-change";
-import {
-    ButtonBase, PseudoClassHandler, Length, layout,
-    borderTopWidthProperty, borderRightWidthProperty, borderBottomWidthProperty, borderLeftWidthProperty,
-    paddingTopProperty, paddingRightProperty, paddingBottomProperty, paddingLeftProperty,
-    whiteSpaceProperty, WhiteSpace, textAlignmentProperty, TextAlignment, View
+﻿import {
+    ButtonBase, PseudoClassHandler,
+    paddingLeftProperty, paddingTopProperty, paddingRightProperty, paddingBottomProperty,
+    Length, zIndexProperty, textAlignmentProperty, TextAlignment
 } from "./button-common";
+import { profile } from "../../profiling";
+import { TouchGestureEventData, GestureTypes, TouchAction } from "../gestures";
+
+import NSButton from "../../../hypers/ns-button";
 
 export * from "./button-common";
 
+let ClickListener;
+
+function initializeClickListener(): void {
+    const owner = this;
+
+    if (ClickListener) {
+        return;
+    }
+
+    class ClickListenerImpl {
+        public onClick(v): void {
+            if (owner) {
+                owner._emit(ButtonBase.tapEvent);
+            }
+        }
+    }
+
+    ClickListener = ClickListenerImpl;
+}
+
 export class Button extends ButtonBase {
-    public nativeViewProtected: UIButton;
+    nativeViewProtected: NSButton;
 
-    private _tapHandler: NSObject;
-    private _stateChangedHandler: ControlStateChangeListener;
-
-    createNativeView() {
-        return UIButton.buttonWithType(UIButtonType.System);
+    public createNativeView() {
+        return document.createElement("ns-button");
     }
 
     public initNativeView(): void {
         super.initNativeView();
         const nativeView = this.nativeViewProtected;
-        this._tapHandler = TapHandlerImpl.initWithOwner(new WeakRef(this));
-        nativeView.addTargetActionForControlEvents(this._tapHandler, "tap", UIControlEvents.TouchUpInside);
+        initializeClickListener.call(this);
+        const clickListener = new ClickListener(this);
+        nativeView.onclick = clickListener.onClick;
+        (<any>nativeView).clickListener = clickListener;
     }
 
-    public disposeNativeView(): void {
-        this._tapHandler = null;
+    public disposeNativeView() {
+        if (this.nativeViewProtected) {
+            (<any>this.nativeViewProtected).clickListener.owner = null;
+        }
         super.disposeNativeView();
     }
 
-    get ios() {
-        return this.nativeViewProtected;
-    }
-
-    public onUnloaded() {
-        super.onUnloaded();
-        if (this._stateChangedHandler) {
-            this._stateChangedHandler.stop();
-        }
-    }
+    private _highlightedHandler: (args: TouchGestureEventData) => void;
 
     @PseudoClassHandler("normal", "highlighted", "pressed", "active")
     _updateHandler(subscribe: boolean) {
-        if (subscribe) {
-            if (!this._stateChangedHandler) {
-                this._stateChangedHandler = new ControlStateChangeListener(this.nativeViewProtected, (s: string) => {
-                    this._goToVisualState(s);
-                });
-            }
-            this._stateChangedHandler.start();
-        } else {
-            this._stateChangedHandler.stop();
-        }
-    }
-
-    [borderTopWidthProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.top,
-            unit: "px"
-        };
-    }
-    [borderTopWidthProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let top = layout.toDeviceIndependentPixels(this.effectivePaddingTop + this.effectiveBorderTopWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: top, left: inset.left, bottom: inset.bottom, right: inset.right };
-    }
-
-    [borderRightWidthProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.right,
-            unit: "px"
-        };
-    }
-    [borderRightWidthProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let right = layout.toDeviceIndependentPixels(this.effectivePaddingRight + this.effectiveBorderRightWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: inset.top, left: inset.left, bottom: inset.bottom, right: right };
-    }
-
-    [borderBottomWidthProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.bottom,
-            unit: "px"
-        };
-    }
-    [borderBottomWidthProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let bottom = layout.toDeviceIndependentPixels(this.effectivePaddingBottom + this.effectiveBorderBottomWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: inset.top, left: inset.left, bottom: bottom, right: inset.right };
-    }
-
-    [borderLeftWidthProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.left,
-            unit: "px"
-        };
-    }
-    [borderLeftWidthProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let left = layout.toDeviceIndependentPixels(this.effectivePaddingLeft + this.effectiveBorderLeftWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: inset.top, left: left, bottom: inset.bottom, right: inset.right };
+        // if (subscribe) {
+        //     this._highlightedHandler = this._highlightedHandler || ((args: TouchGestureEventData) => {
+        //         switch (args.action) {
+        //             case TouchAction.up:
+        //                 this._goToVisualState("normal");
+        //                 break;
+        //             case TouchAction.down:
+        //                 this._goToVisualState("highlighted");
+        //                 break;
+        //         }
+        //     });
+        //     this.on(GestureTypes.touch, this._highlightedHandler);
+        // } else {
+        //     this.off(GestureTypes.touch, this._highlightedHandler);
+        // }
     }
 
     [paddingTopProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.top,
-            unit: "px"
-        };
+        return { value: this.nativeViewProtected.style.paddingTop, unit: "px" }
     }
     [paddingTopProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let top = layout.toDeviceIndependentPixels(this.effectivePaddingTop + this.effectiveBorderTopWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: top, left: inset.left, bottom: inset.bottom, right: inset.right };
+        org.nativescript.widgets.ViewHelper.setPaddingTop(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderTopWidth, 0));
     }
 
     [paddingRightProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.right,
-            unit: "px"
-        };
+        return { value: this.nativeViewProtected.style.paddingRight, unit: "px" }
     }
     [paddingRightProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let right = layout.toDeviceIndependentPixels(this.effectivePaddingRight + this.effectiveBorderRightWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: inset.top, left: inset.left, bottom: inset.bottom, right: right };
+        org.nativescript.widgets.ViewHelper.setPaddingRight(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderRightWidth, 0));
     }
 
     [paddingBottomProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.bottom,
-            unit: "px"
-        };
+        return { value: this.nativeViewProtected.style.paddingBottom, unit: "px" }
     }
     [paddingBottomProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let bottom = layout.toDeviceIndependentPixels(this.effectivePaddingBottom + this.effectiveBorderBottomWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: inset.top, left: inset.left, bottom: bottom, right: inset.right };
+        org.nativescript.widgets.ViewHelper.setPaddingBottom(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderBottomWidth, 0));
     }
 
     [paddingLeftProperty.getDefault](): Length {
-        return {
-            value: this.nativeViewProtected.contentEdgeInsets.left,
-            unit: "px"
-        };
+        return { value: this.nativeViewProtected.style.paddingLeft, unit: "px" }
     }
     [paddingLeftProperty.setNative](value: Length) {
-        let inset = this.nativeViewProtected.contentEdgeInsets;
-        let left = layout.toDeviceIndependentPixels(this.effectivePaddingLeft + this.effectiveBorderLeftWidth);
-        this.nativeViewProtected.contentEdgeInsets = { top: inset.top, left: left, bottom: inset.bottom, right: inset.right };
+        org.nativescript.widgets.ViewHelper.setPaddingLeft(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderLeftWidth, 0));
+    }
+
+    [zIndexProperty.setNative](value: number) {
+        org.nativescript.widgets.ViewHelper.setZIndex(this.nativeViewProtected, value);
     }
 
     [textAlignmentProperty.setNative](value: TextAlignment) {
-        switch (value) {
-            case "left":
-                this.nativeViewProtected.titleLabel.textAlignment = NSTextAlignment.Left;
-                this.nativeViewProtected.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left;
-                break;
-            case "initial":
-            case "center":
-                this.nativeViewProtected.titleLabel.textAlignment = NSTextAlignment.Center;
-                this.nativeViewProtected.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Center;
-                break;
-            case "right":
-                this.nativeViewProtected.titleLabel.textAlignment = NSTextAlignment.Right;
-                this.nativeViewProtected.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Right;
-                break;
-        }
+        // Button initial value is center.
+        const newValue = value === "initial" ? "center" : value;
+        super[textAlignmentProperty.setNative](newValue);
     }
-
-    [whiteSpaceProperty.setNative](value: WhiteSpace) {
-        const nativeView = this.nativeViewProtected.titleLabel;
-        switch (value) {
-            case "normal":
-                nativeView.lineBreakMode = NSLineBreakMode.ByWordWrapping;
-                nativeView.numberOfLines = 0;
-                break;
-            case "nowrap":
-            case "initial":
-                nativeView.lineBreakMode = NSLineBreakMode.ByTruncatingMiddle;
-                nativeView.numberOfLines = 1;
-                break;
-        }
-    }
-
-    public onMeasure(widthMeasureSpec: number, heightMeasureSpec: number): void {
-        // If there is text-wrap UIButton.sizeThatFits will return wrong result (not respecting the text wrap).
-        // So fallback to original onMeasure if there is no text-wrap and use custom measure otherwise.
-        if (!this.textWrap) {
-            return super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        }
-
-        let nativeView = this.nativeViewProtected;
-        if (nativeView) {
-            const width = layout.getMeasureSpecSize(widthMeasureSpec);
-            const widthMode = layout.getMeasureSpecMode(widthMeasureSpec);
-            const height = layout.getMeasureSpecSize(heightMeasureSpec);
-            const heightMode = layout.getMeasureSpecMode(heightMeasureSpec);
-
-            const horizontalPadding = this.effectivePaddingLeft + this.effectiveBorderLeftWidth + this.effectivePaddingRight + this.effectiveBorderRightWidth;
-            let verticalPadding = this.effectivePaddingTop + this.effectiveBorderTopWidth + this.effectivePaddingBottom + this.effectiveBorderBottomWidth;
-
-            // The default button padding for UIButton - 6dip top and bottom.
-            if (verticalPadding === 0) {
-                verticalPadding = layout.toDevicePixels(12);
-            }
-
-            const desiredSize = layout.measureNativeView(
-                nativeView.titleLabel,
-                width - horizontalPadding, widthMode,
-                height - verticalPadding, heightMode);
-
-            desiredSize.width = desiredSize.width + horizontalPadding;
-            desiredSize.height = desiredSize.height + verticalPadding;
-
-            const measureWidth = Math.max(desiredSize.width, this.effectiveMinWidth);
-            const measureHeight = Math.max(desiredSize.height, this.effectiveMinHeight);
-
-            const widthAndState = View.resolveSizeAndState(measureWidth, width, widthMode, 0);
-            const heightAndState = View.resolveSizeAndState(measureHeight, height, heightMode, 0);
-
-            this.setMeasuredDimension(widthAndState, heightAndState);
-        }
-    }
-}
-
-class TapHandlerImpl extends NSObject {
-    private _owner: WeakRef<Button>;
-
-    public static initWithOwner(owner: WeakRef<Button>): TapHandlerImpl {
-        let handler = <TapHandlerImpl>TapHandlerImpl.new();
-        handler._owner = owner;
-        return handler;
-    }
-
-    public tap(args) {
-        let owner = this._owner.get();
-        if (owner) {
-            owner._emit(ButtonBase.tapEvent);
-        }
-    }
-
-    public static ObjCExposedMethods = {
-        "tap": { returns: interop.types.void, params: [interop.types.id] }
-    };
 }

@@ -1,9 +1,17 @@
 ﻿import { WrapLayoutBase, View, layout } from "./wrap-layout-common";
 
+import NSWrapLayout from "../../../../hypers/ns-wrap-layout";
+
 export * from "./wrap-layout-common";
 
 export class WrapLayout extends WrapLayoutBase {
     private _lengths: Array<number> = new Array<number>();
+
+    nativeViewProtected: NSWrapLayout;
+
+    createNativeView() {
+        return document.createElement("ns-wrap-layout");
+    }
 
     private static getChildMeasureSpec(parentMode: number, parentLength: number, itemLength): number {
         if (itemLength > 0) {

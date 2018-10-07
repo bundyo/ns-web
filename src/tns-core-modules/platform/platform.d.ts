@@ -15,12 +15,15 @@ export var isAndroid: boolean;
  */
 export var isIOS: boolean;
 
+export var isWeb: boolean;
+
 /*
  * Enum holding platform names.
  */
 export module platformNames {
     export var android: string;
     export var ios: string;
+    export var web: string;
 }
 
 /*
@@ -125,4 +128,4 @@ export module screen {
 /**
  * Gets the current device information.
  */
-export var device: Device;    
+export var device: Device;

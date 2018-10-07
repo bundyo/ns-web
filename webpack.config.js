@@ -7,7 +7,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = {
     mode: 'development',
 
-    entry: './src/hyper.js',
+    entry: './app',
 
     output: {
         path: path.resolve(__dirname, './dist'),
@@ -67,6 +67,14 @@ module.exports = {
             }
         },
         {
+            test: /\.html$/,
+            loader: 'html-loader'
+        },
+        {
+            test: /\.xml$/,
+            loader: 'raw-loader'
+        },
+        {
             test: /\.(png|jpg|gif|svg)$/,
             loader: 'file-loader',
             options: {
@@ -116,6 +124,9 @@ if (process.env.NODE_ENV === 'production') {
             'process.env': {
                 NODE_ENV: '"production"'
             }
+        }),
+        new webpack.DefinePlugin({
+            "window.TNS_WEBPACK": "true",
         }),
         new webpack.optimize.UglifyJsPlugin({
             sourceMap: true,

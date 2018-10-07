@@ -19,7 +19,7 @@ class NSApp extends HyperHTMLElement {
                 <ns-button text="TAP" icon="logo.png" @tap="onTap" col="1"></ns-button>
                 <ns-label :text="message" class="message" textWrap="true" col="2"></ns-label>
                 <ns-label class="title" col="0" row="1" colSpan="3" text="Span Label"></ns-label>
-                <ns-stack-layout row="2" col="0" colSpan="3" orientation="vertical">
+                <ns-stack-layout row="2" col="0" colSpan="2" orientation="vertical">
                     <ns-image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"></ns-image>
                     <ns-absolute-layout width="210" height="210" background-color="lightgray">
                         <ns-label text="10, 10" left="10" top="10" width="90" height="90"
