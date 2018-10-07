@@ -6,6 +6,10 @@ ListView {
     margin: 0 10 0 10;
 }
 
+ScrollView {
+    padding: 10px;
+}
+
 .title {
     font-size: 32;
     color: black;

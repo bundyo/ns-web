@@ -13,6 +13,7 @@ ns-stack-layout {
     display: flex;
     flex-direction: column;
     min-height: 10px;
+    position: relative;
 }
 
 ns-stack-layout [horizontalAlignment="left"] {
@@ -89,6 +90,7 @@ ns-navigation-button {
     justify-content: center;
     user-select: none;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 ns-label {

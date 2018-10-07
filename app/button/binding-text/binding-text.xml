@@ -4,12 +4,12 @@
         <ActionItem android.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
     </ActionBar>
 
-    <StackLayout>
+    <ScrollView>
       <StackLayout>
           <Label class="p-15" text="Modified button text" />
           <Button class="btn btn-primary btn-active" id="button" text="Rebind" tap="rebind" />
           <StackLayout/>
           <Button class="btn" id="button" text="{{ content }}" />
       </StackLayout>
-    </StackLayout>
+    </ScrollView>
 </Page>
