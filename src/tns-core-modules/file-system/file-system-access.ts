@@ -335,7 +335,7 @@ export class FileSystemAccess {
         //return extension;
         const dotIndex = path.lastIndexOf(".");
         if (dotIndex && dotIndex >= 0 && dotIndex < path.length) {
-            return path.substring(0, dotIndex);
+            return path.substring(dotIndex);
         }
 
         return "";

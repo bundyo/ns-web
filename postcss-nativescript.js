@@ -38,7 +38,7 @@ module.exports = postcss.plugin('postcss-nativescript', function (opts) {
             if (node.type === 'rule') {
                 node.selector = node.selector.replace(selectorRegExp, (match, g1, g2) => {
                     return g1 + "ns-" + dashCase(g2);
-                }).replace(/:highlighted/gm, ":active").toLowerCase();
+                }).replace(/:highlighted|:pressed/gm, ":active").toLowerCase();
             }
         });
 

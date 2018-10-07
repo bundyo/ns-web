@@ -1,203 +1,131 @@
 ﻿import { ScrollEventData } from ".";
-import { View, layout, ScrollViewBase, scrollBarIndicatorVisibleProperty } from "./scroll-view-common";
-import { ios as iosUtils } from "../../utils";
-// HACK: Webpack. Use a fully-qualified import to allow resolve.extensions(.ios.js) to
-// kick in. `../utils` doesn't seem to trigger the webpack extensions mechanism.
-import * as uiUtils from "../utils";
+import { ScrollViewBase, layout, scrollBarIndicatorVisibleProperty } from "./scroll-view-common";
+
+import NSScrollView from "../../../hypers/ns-scroll-view";
 
 export * from "./scroll-view-common";
 
-const majorVersion = iosUtils.MajorVersion;
-
-class UIScrollViewDelegateImpl extends NSObject implements UIScrollViewDelegate {
-    private _owner: WeakRef<ScrollView>;
-
-    public static initWithOwner(owner: WeakRef<ScrollView>): UIScrollViewDelegateImpl {
-        let impl = <UIScrollViewDelegateImpl>UIScrollViewDelegateImpl.new();
-        impl._owner = owner;
-        return impl;
-    }
-
-    public scrollViewDidScroll(sv: UIScrollView): void {
-        let owner = this._owner.get();
-        if (owner) {
-            owner.notify(<ScrollEventData>{
-                object: owner,
-                eventName: "scroll",
-                scrollX: owner.horizontalOffset,
-                scrollY: owner.verticalOffset
-            });
-        }
-    }
-
-    public static ObjCProtocols = [UIScrollViewDelegate];
-}
-
 export class ScrollView extends ScrollViewBase {
-    public nativeViewProtected: UIScrollView;
-    private _contentMeasuredWidth: number = 0;
-    private _contentMeasuredHeight: number = 0;
-    private _delegate: UIScrollViewDelegateImpl;
-
-    public createNativeView() {
-        const view = UIScrollView.new();
-        return view;
-    }
-
-    initNativeView() {
-        super.initNativeView();
-        this.updateScrollBarVisibility(this.scrollBarIndicatorVisible);
-        this._setNativeClipToBounds();
-    }
-
-    _setNativeClipToBounds() {
-        // Always set clipsToBounds for scroll-view
-        this.nativeViewProtected.clipsToBounds = true;
-    }
-
-    protected attachNative() {
-        this._delegate = UIScrollViewDelegateImpl.initWithOwner(new WeakRef(this));
-        this.nativeViewProtected.delegate = this._delegate;
-    }
-
-    protected dettachNative() {
-        this.nativeViewProtected.delegate = null;
-    }
-
-    protected updateScrollBarVisibility(value) {
-        if (!this.nativeViewProtected) {
-            return;
-        }
-        if (this.orientation === "horizontal") {
-            this.nativeViewProtected.showsHorizontalScrollIndicator = value;
-        } else {
-            this.nativeViewProtected.showsVerticalScrollIndicator = value;
-        }
-    }
+    nativeViewProtected: NSScrollView;
+    private _webViewId: number = -1;
+    private handler: any;
 
     get horizontalOffset(): number {
-        return this.nativeViewProtected ? this.nativeViewProtected.contentOffset.x : 0;
+        const nativeView = this.nativeViewProtected;
+        if (!nativeView) {
+            return 0;
+        }
+
+        return nativeView.scrollLeft / layout.getDisplayDensity();
     }
 
     get verticalOffset(): number {
-        return this.nativeViewProtected ? this.nativeViewProtected.contentOffset.y : 0;
+        const nativeView = this.nativeViewProtected;
+        if (!nativeView) {
+            return 0;
+        }
+
+        return nativeView.scrollTop / layout.getDisplayDensity();
     }
 
     get scrollableWidth(): number {
-        if (!this.nativeViewProtected  || this.orientation !== "horizontal") {
+        const nativeView = this.nativeViewProtected;
+        if (!nativeView || this.orientation !== "horizontal") {
             return 0;
         }
 
-        return Math.max(0, this.nativeViewProtected.contentSize.width - this.nativeViewProtected.bounds.size.width);
+        return nativeView.scrollWidth / layout.getDisplayDensity();
     }
 
     get scrollableHeight(): number {
-        if (!this.nativeViewProtected  || this.orientation !== "vertical") {
+        const nativeView = this.nativeViewProtected;
+        if (!nativeView || this.orientation !== "vertical") {
             return 0;
         }
 
-        return Math.max(0, this.nativeViewProtected.contentSize.height - this.nativeViewProtected.bounds.size.height);
+        return nativeView.scrollHeight / layout.getDisplayDensity();
     }
 
     [scrollBarIndicatorVisibleProperty.getDefault](): boolean {
         return true;
     }
     [scrollBarIndicatorVisibleProperty.setNative](value: boolean) {
-        this.updateScrollBarVisibility(value);
+        if (this.orientation === "horizontal") {
+            this.nativeViewProtected.style.overflowX = value ? "auto" : "hidden";
+        } else {
+            this.nativeViewProtected.style.overflowY = value ? "auto" : "hidden";
+        }
     }
 
     public scrollToVerticalOffset(value: number, animated: boolean) {
-        if (this.nativeViewProtected  && this.orientation === "vertical") {
-            const bounds = this.nativeViewProtected.bounds.size;
-            this.nativeViewProtected.scrollRectToVisibleAnimated(CGRectMake(0, value, bounds.width, bounds.height), animated);
+        const nativeView = this.nativeViewProtected;
+        if (nativeView && this.orientation === "vertical") {
+            value *= layout.getDisplayDensity();
+
+            nativeView.scrollTo({
+                top: value,
+                behavior: animated ? "smooth" : "instant"
+            });
         }
     }
 
     public scrollToHorizontalOffset(value: number, animated: boolean) {
-        if (this.nativeViewProtected  && this.orientation === "horizontal") {
-            const bounds = this.nativeViewProtected.bounds.size;
-            this.nativeViewProtected.scrollRectToVisibleAnimated(CGRectMake(value, 0, bounds.width, bounds.height), animated);
-        }
-    }
-
-    public onMeasure(widthMeasureSpec: number, heightMeasureSpec: number): void {
-        // Don't call measure because it will measure content twice.
-        const width = layout.getMeasureSpecSize(widthMeasureSpec);
-        const widthMode = layout.getMeasureSpecMode(widthMeasureSpec);
-
-        const height = layout.getMeasureSpecSize(heightMeasureSpec);
-        const heightMode = layout.getMeasureSpecMode(heightMeasureSpec);
-
-        const child = this.layoutView;
-        this._contentMeasuredWidth = this.effectiveMinWidth;
-        this._contentMeasuredHeight = this.effectiveMinHeight;
-
-        if (child) {
-            let childSize: { measuredWidth: number; measuredHeight: number };
-            if (this.orientation === "vertical") {
-                childSize = View.measureChild(this, child, widthMeasureSpec, layout.makeMeasureSpec(0, layout.UNSPECIFIED));
-            } else {
-                childSize = View.measureChild(this, child, layout.makeMeasureSpec(0, layout.UNSPECIFIED), heightMeasureSpec);
-            }
-
-            this._contentMeasuredWidth = Math.max(childSize.measuredWidth, this.effectiveMinWidth);
-            this._contentMeasuredHeight = Math.max(childSize.measuredHeight, this.effectiveMinHeight);
-        }
-
-        const widthAndState = View.resolveSizeAndState(this._contentMeasuredWidth, width, widthMode, 0);
-        const heightAndState = View.resolveSizeAndState(this._contentMeasuredHeight, height, heightMode, 0);
-
-        this.setMeasuredDimension(widthAndState, heightAndState);
-    }
-
-    public onLayout(left: number, top: number, right: number, bottom: number): void {
-        const insets = this.getSafeAreaInsets();
-        let width = (right - left - insets.right - insets.left);
-        let height = (bottom - top - insets.bottom - insets.top);
-
         const nativeView = this.nativeViewProtected;
+        if (nativeView && this.orientation === "horizontal") {
+            value *= layout.getDisplayDensity();
 
-        if (majorVersion > 10) {
-            // Disable automatic adjustment of scroll view insets
-            // Consider exposing this as property with all 4 modes
-            // https://developer.apple.com/documentation/uikit/uiscrollview/contentinsetadjustmentbehavior
-            nativeView.contentInsetAdjustmentBehavior = 2;
+            nativeView.scrollTo({
+                left: value,
+                behavior: animated ? "smooth" : "instant"
+            });
         }
+    }
 
-        let scrollWidth = width;
-        let scrollHeight = height;
-        if (this.orientation === "horizontal") {
-            scrollWidth = Math.max(this._contentMeasuredWidth + insets.left + insets.right, width);
-            scrollHeight = height + insets.top + insets.bottom;
-            width = Math.max(this._contentMeasuredWidth, width);
-        }
-        else {
-            scrollHeight = Math.max(this._contentMeasuredHeight + insets.top + insets.bottom, height);
-            scrollWidth = width + insets.left + insets.right;
-            height = Math.max(this._contentMeasuredHeight, height);
-        }
+    public createNativeView() {
+        const element = document.createElement("ns-scroll-view");
 
-        nativeView.contentSize = CGSizeMake(layout.toDeviceIndependentPixels(scrollWidth), layout.toDeviceIndependentPixels(scrollHeight));
-        View.layoutChild(this, this.layoutView, insets.left, insets.top, insets.left + width, insets.top + height);
+        element["orientation"] = this.orientation;
+
+        return element;
     }
 
     public _onOrientationChanged() {
-        this.updateScrollBarVisibility(this.scrollBarIndicatorVisible);
-    }
-}
-
-function getTabBarHeight(scrollView: ScrollView): number {
-    let parent = scrollView.parent;
-    while (parent) {
-        const controller = parent.viewController;
-        if (controller instanceof UITabBarController) {
-            return uiUtils.ios.getActualHeight(controller.tabBar);
+        if (this.nativeViewProtected) {
+            this.nativeViewProtected.orientation = this.orientation;
         }
-
-        parent = parent.parent;
     }
 
-    return 0;
+    protected attachNative() {
+        this.handler = this._onScrollChanged.bind(this);
+        this.nativeViewProtected.addEventListener("scroll", this.handler);
+    }
+
+    private _lastScrollX: number = -1;
+    private _lastScrollY: number = -1;
+    private _onScrollChanged() {
+        const nativeView = this.nativeViewProtected;
+        if (nativeView) {
+            // Event is only raised if the scroll values differ from the last time in order to wokraround a native Android bug.
+            // https://github.com/NativeScript/NativeScript/issues/2362
+            let newScrollX = nativeView.scrollLeft;
+            let newScrollY = nativeView.scrollTop;
+            if (newScrollX !== this._lastScrollX || newScrollY !== this._lastScrollY) {
+                this.notify(<ScrollEventData>{
+                    object: this,
+                    eventName: ScrollView.scrollEvent,
+                    scrollX: newScrollX / layout.getDisplayDensity(),
+                    scrollY: newScrollY / layout.getDisplayDensity()
+                });
+                this._lastScrollX = newScrollX;
+                this._lastScrollY = newScrollY;
+            }
+        }
+    }
+
+    protected dettachNative() {
+        this.nativeViewProtected.removeEventListener(this.handler);
+        this.handler = null;
+    }
 }
 
-ScrollView.prototype.recycleNativeView = "auto";
+ScrollView.prototype.recycleNativeView = "never";

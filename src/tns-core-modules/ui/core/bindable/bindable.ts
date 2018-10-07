@@ -20,6 +20,8 @@ import * as types from "../../../utils/types";
 import * as applicationCommon from "../../../application/application-common";
 import * as polymerExpressions from "../../../js-libs/polymer-expressions";
 
+import { WeakRef } from "../../../../utils/weakref";
+
 export {
     Observable, WrappedValue, PropertyChangeData, EventData,
     traceEnabled, traceWrite, traceError, traceCategories, traceNotifyEvent, traceMessageType, isCategorySet
@@ -29,7 +31,7 @@ const contextKey = "context";
 // this regex is used to get parameters inside [] for example:
 // from $parents['ListView'] will return 'ListView'
 // from $parents[1] will return 1
-const paramsRegex = /\[\s*(['"])*(\w*)\1\s*\]/;
+const paramsRegex = /\[\s*(['"])*(\w*)\1\s*]/;
 const bc = bindingConstants;
 const emptyArray = [];
 const propertiesCache = {};
@@ -49,8 +51,8 @@ function getProperties(property: string): Array<string> {
     // then split properties either on '.' or '['
     const parentsMatches = property.match(parentsRegex);
     result = property.replace(parentsRegex, "parentsMatch")
-        .replace(/\]/g, "")
-        .split(/\.|\[/);
+        .replace(/]/g, "")
+        .split(/[.\[]/);
 
     let parentsMatchesCounter = 0;
     for (let i = 0, resultLength = result.length; i < resultLength; i++) {

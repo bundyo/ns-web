@@ -3,11 +3,11 @@ import "~/src/tns-core-modules/bundle-entry-points";
 import * as utils from "../utils";
 
 const req = require.context("../../../app", true, /\.(js|xml|html|css)$/),
-      tagRegExp = /(<\/?)((?!\?|\\|!|au-)\S*?)(\s|>)/g,
-      selfClosingRegExp = /<([^\s/>]+?)(\s[^>]*?)\/>|<([\w:-]+?)\/>/g,
-      parentRegExp = /\/[^/]*$/,
-      expressionRegExp = /^{+?([^{}]*?)}+?$/g,
-      modules = [];
+    tagRegExp = /(<\/?)((?!\?|\\|!|au-)\S*?)(\s|>)/g,
+    selfClosingRegExp = /<([^\s/>]+?)(\s[^>]*?)\/>|<([\w:-]+?)\/>/g,
+    parentRegExp = /\/[^/]*$/,
+    expressionRegExp = /^{+?([^{}]*?)}+?$/g,
+    modules = [];
 
 import {
     notify, launchEvent, resumeEvent, suspendEvent, exitEvent, lowMemoryEvent,
@@ -215,9 +215,11 @@ const webApp = new Application();
 const appModule = require("./application-common");
 const observable = require("../data/observable");
 import { Frame } from "../ui/frame";
+
 const trace = require("../trace");
 
 trace.enable();
+trace.setCategories(trace.categories.All);
 
 export class WebApplication extends observable.Observable {
     constructor() {
@@ -244,25 +246,32 @@ export class WebApplication extends observable.Observable {
             web: null
         });
 
-        this._rootView = webApp.entry.root;
-        let frame;
-        let navParam;
+        //this._rootView = webApp.entry.root;
 
         if (!this._rootView) {
-            navParam = mainEntry;
-            if (!navParam) {
-                navParam = mainModule;
-            }
-            if (navParam) {
-                frame = new Frame();
-                frame.navigate(navParam);
-            }
-            else {
+            // try to navigate to the mainEntry (if specified)
+            if (mainEntry) {
+                if (createRootFrame.value) {
+                    const frame = this._rootView = new Frame();
+                    frame.navigate(mainEntry);
+                } else {
+                    this._rootView = createViewFromEntry(mainEntry);
+                }
+            } else {
+                // TODO: Throw an exception?
                 throw new Error("A Frame must be used to navigate to a Page.");
             }
-            this._rootView = frame;
         }
+
         this._window.content = this._rootView;
+
+        document.body.append(this._rootView.web);
+
+        if (!this._rootView.isLoaded) {
+            this._rootView.callLoaded();
+        }
+
+        return this._rootView;
         // if (rootView instanceof Frame) {
         //     this.rootController = this._window.rootViewController = rootView.web.controller;
         // }
@@ -297,11 +306,10 @@ export class WebApplication extends observable.Observable {
 }
 
 let started = false;
-const createRootFrame = { value: true };
+const createRootFrame = {value: true};
 let mainEntry;
 
-export let web = new WebApplication();
-setApplication(web);
+export let web;
 
 function createRootView(v) {
     let rootView = v;
@@ -347,6 +355,8 @@ export function start(entry) {
 
     if (!web || !web.nativeApp) {
         web = new WebApplication();
+        setApplication(web);
+
         webApp.setEntry(entry);
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -369,4 +379,4 @@ export function addCss(cssText) {
     // }
 }
 
-Object.assign(appModule, { WebApplication, start, addCss, getMainEntry, getRootView });
+Object.assign(appModule, {WebApplication, start, addCss, getMainEntry, getRootView});
