@@ -87,6 +87,8 @@ ns-navigation-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    user-select: none;
+    cursor: pointer;
 }
 
 ns-label {

@@ -47,25 +47,26 @@ function getAttachListener() {
 
 export class Frame extends FrameBase {
 
-    private _context: any;
-    private _web: NSFrame;
     private _containerViewId: number = -1;
     private _tearDownPending = false;
     private _attachedToWindow = false;
+
+    public nativeViewProtected: NSFrame;
+    public _context: any;
     public _isBack: boolean = true;
 
     constructor() {
         super();
         this._context = {};
-        this._web = document.createElement("ns-frame");
+        this.nativeViewProtected = document.createElement("ns-frame");
     }
 
     createNativeView() {
-        return this._web;
+        return this.nativeViewProtected;
     }
 
     public get web(): NSFrame {
-        return this._web;
+        return this.nativeViewProtected;
     }
 
     public static get defaultAnimatedNavigation(): boolean {
@@ -133,7 +134,7 @@ export class Frame extends FrameBase {
         this._isBack = false;
 
         // set frameId here so that we could use it in fragment.transitions
-        newEntry.frameId = this._web.frameId;
+        newEntry.frameId = this.nativeViewProtected.frameId;
 
         // New Fragment
         if (newEntry.entry.clearHistory) {
@@ -227,11 +228,11 @@ export class Frame extends FrameBase {
         const listener = getAttachListener();
         this.nativeViewProtected.addOnAttachStateChangeListener(listener);
         this.nativeViewProtected[ownerSymbol] = this;
-        this._web.rootViewGroup = this.nativeViewProtected;
+        this.nativeViewProtected.rootViewGroup = this.nativeViewProtected;
         if (this._containerViewId < 0) {
             this._containerViewId = android.view.View.generateViewId();
         }
-        this._web.rootViewGroup.setId(this._containerViewId);
+        this.nativeViewProtected.rootViewGroup.setId(this._containerViewId);
     }
 
     public disposeNativeView() {
@@ -253,7 +254,7 @@ export class Frame extends FrameBase {
             clearEntry(current);
         }
 
-        this._web.rootViewGroup = null;
+        this.nativeViewProtected.rootViewGroup = null;
         super.disposeNativeView();
     }
 
@@ -270,8 +271,8 @@ export class Frame extends FrameBase {
             return !page.actionBarHidden;
         }
 
-        if (this._web && this._web.showActionBar !== undefined) {
-            return this._web.showActionBar;
+        if (this.nativeViewProtected && this.nativeViewProtected.showActionBar !== undefined) {
+            return this.nativeViewProtected.showActionBar;
         }
 
         return true;

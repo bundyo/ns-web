@@ -30,6 +30,7 @@ import "../../hypers/ns-action-bar";
 import "../../hypers/ns-action-item";
 import "../../hypers/ns-navigation-button";
 import "../../hypers/ns-page";
+import "../../hypers/ns-frame";
 import "../../hypers/ns-image";
 import "../../hypers/ns-label";
 
@@ -205,6 +206,8 @@ class Application {
 
             parentElement.classList.remove("ns-fx-start");
             parentElement.classList.add("ns-fx-end");
+
+            setTimeout(transitionEnd, 300);
         } else {
             callback();
         }

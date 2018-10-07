@@ -19,29 +19,11 @@ function generateItemId(): number {
     return actionItemIdGenerator;
 }
 
-let MenuItemClickListener: any;
-
-function initializeMenuItemClickListener(): void {
-    if (MenuItemClickListener) {
-        return;
+const menuItemClickListener: any = function onClick(v) {
+    if (v) {
+        v._emit(ActionItemBase.tapEvent);
     }
-
-    class MenuItemClickListenerImpl {
-        private owner: any;
-
-        constructor(owner) {
-            this.owner = owner;
-        }
-
-        public onClick(v): void {
-            if (this.owner) {
-                this.owner._emit(ActionItemBase.tapEvent);
-            }
-        }
-    }
-
-    MenuItemClickListener = MenuItemClickListenerImpl;
-}
+};
 
 export class ActionItem extends ActionItemBase {
     private _webPosition: Object = {
@@ -63,15 +45,13 @@ export class ActionItem extends ActionItemBase {
 
     public initNativeView(): void {
         super.initNativeView();
-        const nativeView = this.nativeViewProtected;
-        initializeMenuItemClickListener();
-        const menuItemClickListener = new MenuItemClickListener(this);
-        nativeView.onclick = menuItemClickListener.onClick.bind(menuItemClickListener);
-        (<any>nativeView).menuItemClickListener = menuItemClickListener;
+        const view = this.nativeViewProtected;
+        view.onclick = menuItemClickListener.bind(this, this);
+        (<any>view).menuItemClickListener = menuItemClickListener;
     }
 
     public disposeNativeView() {
-        (<any>this.nativeViewProtected).menuItemClickListener.owner = null;
+        (<any>this.nativeViewProtected).menuItemClickListener = null;
         super.disposeNativeView();
     }
 
@@ -126,6 +106,7 @@ export class ActionBar extends ActionBarBase {
 
     constructor() {
         super();
+        this._context = {};
         this._web = new WebActionBarSettings(this);
     }
 
@@ -254,25 +235,21 @@ export class ActionBar extends ActionBarBase {
     }
 
     public _addActionItems() {
-        //let menu = this.nativeViewProtected.getMenu();
-        // let items = this.actionItems.getVisibleItems();
-        //
-        // const abItems = this.nativeViewProtected.querySelectorAll("ns-action-item");
-        //
-        // abItems.forEach((item) => item.remove());
-        //
-        // for (let i = 0; i < items.length; i++) {
-        //     let item = <ActionItem>items[i];
-        //     let menuItem = new ActionItem();
-        //
-        //     menuItem["text"] = item.text + "";
-        //
-        //     if (item.icon) {
-        //         menuItem["icon"] = item.icon;
-        //     }
-        //
-        //     this.nativeViewProtected.append(menuItem);
-        // }
+        let items = this.actionItems.getVisibleItems();
+
+        this.nativeViewProtected.innerHTML = "";
+
+        for (let i = 0; i < items.length; i++) {
+            let item = <ActionItem>items[i];
+
+            item.nativeViewProtected["text"] = item.text + "";
+
+            if (item.icon) {
+                item.nativeViewProtected["icon"] = item.icon;
+            }
+
+            this.nativeViewProtected.append(item.nativeViewProtected);
+        }
     }
 
     public _onTitlePropertyChanged() {
@@ -307,48 +284,32 @@ export class ActionBar extends ActionBarBase {
     public _removeViewFromNativeVisualTree(child: View): void {
         super._removeViewFromNativeVisualTree(child);
 
-        if (this.nativeViewProtected && child.nativeViewProtected) {
-            this.nativeViewProtected.removeView(child.nativeViewProtected);
+        if (child.nativeViewProtected) {
+            child.nativeViewProtected.remove();
         }
+    }
+
+    getTitle() {
+        return this.nativeViewProtected.querySelector(".ns-action-bar__title");
     }
 
     [colorProperty.getDefault](): number {
-        const nativeView = this.nativeViewProtected;
-        if (!defaultTitleTextColor) {
-            let tv = getAppCompatTextView(nativeView);
-            if (!tv) {
-                const title = nativeView.getTitle();
-                // setTitle will create AppCompatTextView internally;
-                nativeView.setTitle("");
-                tv = getAppCompatTextView(nativeView);
-                if (title) {
-                    // restore title.
-                    nativeView.setTitle(title);
-                }
-            }
-
-            // Fallback to hardcoded falue if we don't find TextView instance...
-            // using new TextView().getTextColors().getDefaultColor() returns different value: -1979711488
-            //defaultTitleTextColor = tv ? tv.getTextColors().getDefaultColor() : -570425344;
-        }
-
-        return defaultTitleTextColor;
+        return this.getTitle().style.color;
     }
     [colorProperty.setNative](value: number | Color) {
-        const color = value instanceof Color ? value.android : value;
-        this.nativeViewProtected.setTitleTextColor(color);
+        this.getTitle().style.color = value instanceof Color ? value.android : value;
     }
 
     [flatProperty.setNative](value: boolean) {
-        const compat = <any>android.support.v4.view.ViewCompat;
-        if (compat.setElevation) {
-            if (value) {
-                compat.setElevation(this.nativeViewProtected, 0);
-            } else {
-                const val = DEFAULT_ELEVATION * layout.getDisplayDensity();
-                compat.setElevation(this.nativeViewProtected, val);
-            }
-        }
+        // const compat = <any>android.support.v4.view.ViewCompat;
+        // if (compat.setElevation) {
+        //     if (value) {
+        //         compat.setElevation(this.nativeViewProtected, 0);
+        //     } else {
+        //         const val = DEFAULT_ELEVATION * layout.getDisplayDensity();
+        //         compat.setElevation(this.nativeViewProtected, val);
+        //     }
+        // }
     }
 }
 

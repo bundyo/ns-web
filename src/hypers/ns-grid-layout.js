@@ -44,7 +44,7 @@ export default class NSGridLayout extends NSElement {
         });
 
         for (let i = 1; i < colCount; i++) {
-            scoped += "[colspan=\"" + i + "\"] { flex: 0 " + (100 / colCount * i) + "%; }\n";
+            scoped += "[colspan=\"" + i + "\"] { flex: 0 " + (100 / (colCount-1) * i) + "%; }\n";
         }
 
         super.updateStyles(scoped);
