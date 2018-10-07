@@ -7,12 +7,12 @@
     <ScrollView>
         <GridLayout rows="auto, auto, auto, auto, auto, auto" columns="100, *, 100">
             <Label text="Page" class="title" col="0"/>
-            <Button text="TAP" icon="logo.png" tap="{{ onTap }}" col="1"/>
+            <Button text="TAP" icon="logo.png" tap="{{ onTap }}" col="1" padding="4"/>
             <Label text="{{ message }}" class="message" textWrap="true" col="2"/>
             <Label class="title" col="0" row="1" colSpan="3" text="Span Label"/>
             <StackLayout row="2" col="0" colSpan="3" orientation="horizontal">
                 <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
-                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                <AbsoluteLayout width="210" height="210" backgroundColor="lightgray">
                      <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
                      <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
                      <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>
@@ -21,7 +21,7 @@
             </StackLayout>
             <StackLayout row="3" col="0" colSpan="3" orientation="horizontal">
                 <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
-                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                <AbsoluteLayout width="210" height="210" backgroundColor="lightgray">
                      <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
                      <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
                      <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>
@@ -30,7 +30,7 @@
             </StackLayout>
             <StackLayout row="4" col="0" colSpan="3" orientation="horizontal">
                 <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
-                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                <AbsoluteLayout width="210" height="210" backgroundColor="lightgray">
                      <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
                      <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
                      <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>
@@ -39,7 +39,7 @@
             </StackLayout>
             <StackLayout row="5" col="0" colSpan="3" orientation="horizontal">
                 <Image src="http://www.google.com/images/errors/logo_sm_2.png" stretch="none"/>
-                <AbsoluteLayout width="210" height="210" style.backgroundColor="lightgray">
+                <AbsoluteLayout width="210" height="210" backgroundColor="lightgray">
                      <Label text="10, 10" left="10" top="10" width="90" height="90" backgroundColor="orangered"/>
                      <Label text="110, 10" left="110" top="10" width="90" height="90" backgroundColor="lightgreen"/>
                      <Label text="110, 110" left="110" top="110" width="90" height="90" backgroundColor="dodgerblue"/>

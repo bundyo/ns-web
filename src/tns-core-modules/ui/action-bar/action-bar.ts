@@ -22,16 +22,21 @@ function generateItemId(): number {
 let MenuItemClickListener: any;
 
 function initializeMenuItemClickListener(): void {
-    const owner = this;
-
     if (MenuItemClickListener) {
         return;
     }
 
     class MenuItemClickListenerImpl {
-        onMenuItemClick(item): boolean {
-            let itemId = item.getItemId();
-            return owner._onWebItemSelected(itemId);
+        private owner: any;
+
+        constructor(owner) {
+            this.owner = owner;
+        }
+
+        public onClick(v): void {
+            if (this.owner) {
+                this.owner._emit(ActionItemBase.tapEvent);
+            }
         }
     }
 
@@ -44,10 +49,30 @@ export class ActionItem extends ActionItemBase {
         systemIcon: undefined
     };
 
+    nativeViewProtected: NSActionItem;
+
     private _itemId;
     constructor() {
         super();
         this._itemId = generateItemId();
+    }
+
+    public createNativeView() {
+        return document.createElement("ns-action-item");
+    }
+
+    public initNativeView(): void {
+        super.initNativeView();
+        const nativeView = this.nativeViewProtected;
+        initializeMenuItemClickListener();
+        const menuItemClickListener = new MenuItemClickListener(this);
+        nativeView.onclick = menuItemClickListener.onClick.bind(menuItemClickListener);
+        (<any>nativeView).menuItemClickListener = menuItemClickListener;
+    }
+
+    public disposeNativeView() {
+        (<any>this.nativeViewProtected).menuItemClickListener.owner = null;
+        super.disposeNativeView();
     }
 
     public get web(): Object {
@@ -124,20 +149,6 @@ export class ActionBar extends ActionBarBase {
         return document.createElement("ns-action-bar");
     }
 
-    public initNativeView(): void {
-        super.initNativeView();
-        const nativeView = this.nativeViewProtected;
-        initializeMenuItemClickListener();
-        const menuItemClickListener = new MenuItemClickListener(this);
-        nativeView.onclick = menuItemClickListener;
-        (<any>nativeView).menuItemClickListener = menuItemClickListener;
-    }
-
-    public disposeNativeView() {
-        (<any>this.nativeViewProtected).menuItemClickListener.owner = null;
-        super.disposeNativeView();
-    }
-
     public onLoaded() {
         super.onLoaded();
         this.update();
@@ -169,31 +180,6 @@ export class ActionBar extends ActionBarBase {
 
         // Set navigation button
         this._updateNavigationButton();
-    }
-
-    public _onWebItemSelected(itemId: number): boolean {
-        // Handle home button
-        if (this.navigationButton && itemId === R_ID_HOME) {
-            this.navigationButton._raiseTap();
-            return true;
-        }
-
-        // Find item with the right ID;
-        let menuItem: ActionItem = undefined;
-        let items = this.actionItems.getItems();
-        for (let i = 0; i < items.length; i++) {
-            if ((<ActionItem>items[i])._getItemId() === itemId) {
-                menuItem = <ActionItem>items[i];
-                break;
-            }
-        }
-
-        if (menuItem) {
-            menuItem._raiseTap();
-            return true;
-        }
-
-        return false;
     }
 
     public _updateNavigationButton() {
@@ -269,35 +255,24 @@ export class ActionBar extends ActionBarBase {
 
     public _addActionItems() {
         //let menu = this.nativeViewProtected.getMenu();
-        let items = this.actionItems.getVisibleItems();
-
-        const abItems = this.nativeViewProtected.querySelectorAll("ns-action-item");
-
-        abItems.forEach((item) => item.remove());
-
-        for (let i = 0; i < items.length; i++) {
-            let item = <ActionItem>items[i];
-            let menuItem = document.createElement("ns-action-item");
-
-            menuItem["text"] = item.text + "";
-
-            this.nativeViewProtected.append(menuItem);
-
-            if (item.icon) {
-                menuItem["icon"] = item.icon;
-            }
-        }
-    }
-
-    private static _setOnClickListener(item: ActionItem): void {
-        const weakRef = new WeakRef(item);
-
-        item.onclick = function (v: android.view.View) {
-            const owner = weakRef.get();
-            if (owner) {
-                owner._raiseTap();
-            }
-        };
+        // let items = this.actionItems.getVisibleItems();
+        //
+        // const abItems = this.nativeViewProtected.querySelectorAll("ns-action-item");
+        //
+        // abItems.forEach((item) => item.remove());
+        //
+        // for (let i = 0; i < items.length; i++) {
+        //     let item = <ActionItem>items[i];
+        //     let menuItem = new ActionItem();
+        //
+        //     menuItem["text"] = item.text + "";
+        //
+        //     if (item.icon) {
+        //         menuItem["icon"] = item.icon;
+        //     }
+        //
+        //     this.nativeViewProtected.append(menuItem);
+        // }
     }
 
     public _onTitlePropertyChanged() {
@@ -316,11 +291,12 @@ export class ActionBar extends ActionBarBase {
         super._addViewToNativeVisualTree(child);
 
         if (this.nativeViewProtected && child.nativeViewProtected) {
-            if (atIndex >= this.nativeViewProtected.getChildCount()) {
-                this.nativeViewProtected.addView(child.nativeViewProtected);
+            if (atIndex >= this.nativeViewProtected.children.length) {
+                this.nativeViewProtected.append(child.nativeViewProtected);
             }
             else {
-                this.nativeViewProtected.addView(child.nativeViewProtected, atIndex);
+                this.nativeViewProtected.insertBefore(child.nativeViewProtected,
+                                                      this.nativeViewProtected.children[atIndex]);
             }
             return true;
         }

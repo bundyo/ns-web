@@ -10,6 +10,22 @@ import {
     opacityProperty,
     originXProperty,
     originYProperty,
+    paddingBottomProperty,
+    paddingLeftProperty,
+    paddingRightProperty,
+    paddingTopProperty,
+    borderLeftColorProperty,
+    borderRightColorProperty,
+    borderTopColorProperty,
+    borderBottomColorProperty,
+    borderLeftWidthProperty,
+    borderRightWidthProperty,
+    borderTopWidthProperty,
+    borderBottomWidthProperty,
+    backgroundImageProperty,
+    backgroundColorProperty,
+    backgroundPositionProperty,
+    backgroundSizeProperty,
     rotateProperty,
     scaleXProperty,
     scaleYProperty,
@@ -19,25 +35,80 @@ import {
     verticalAlignmentProperty,
     ViewCommon,
     Visibility,
-    visibilityProperty, zIndexProperty
+    visibilityProperty, zIndexProperty, EventData
 } from "./view-common";
-import {ios as iosUtils} from "src/tns-core-modules/utils";
-import {dip} from "src/tns-core-modules/ui/core/view/view";
-import {Background} from "src/tns-core-modules/ui/styling/background-common";
 
 export * from "./view-common";
 
 export class View extends ViewCommon {
+    nativeViewProtected: any;
+
     public layoutNativeView(left: number, top: number, right: number, bottom: number): void {
-        //
+        const view = this.nativeViewProtected;
+
+        if (view) {
+            view.style.left = left;
+            view.style.top = top;
+            view.style.right = right;
+            view.style.bottom = bottom;
+        }
     }
 
-    public onLayout(left: number, top: number, right: number, bottom: number): void {
-        //
+    public measure(widthMeasureSpec: number, heightMeasureSpec: number): void {
+        super.measure(widthMeasureSpec, heightMeasureSpec);
+        this.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    public layout(left: number, top: number, right: number, bottom: number): void {
+        super.layout(left, top, right, bottom);
+        this.onLayout(left, top, right, bottom);
     }
 
     public onMeasure(widthMeasureSpec: number, heightMeasureSpec: number): void {
-        // Don't call super because it will set MeasureDimension. This method must be overriden and calculate its measuredDimensions.
+        let view = this.nativeViewProtected;
+        if (view) {
+            view.measure(widthMeasureSpec, heightMeasureSpec);
+            this.setMeasuredDimension(view.getMeasuredWidth(), view.getMeasuredHeight());
+        }
+    }
+
+    public onLayout(left: number, top: number, right: number, bottom: number): void {
+        let view = this.nativeViewProtected;
+        if (view) {
+            this.layoutNativeView(left, top, right, bottom);
+        }
+    }
+
+    _getCurrentLayoutBounds(): { left: number; top: number; right: number; bottom: number } {
+        if (this.nativeViewProtected && !this.isCollapsed) {
+            return this.nativeViewProtected.getBoundingClientRect();
+        } else {
+            return { left: 0, top: 0, right: 0, bottom: 0 };
+        }
+    }
+
+    public getMeasuredWidth(): number {
+        if (this.nativeViewProtected) {
+            return this.nativeViewProtected.offsetWidth;
+        }
+
+        return super.getMeasuredWidth();
+    }
+
+    public getMeasuredHeight(): number {
+        if (this.nativeViewProtected) {
+            return this.nativeViewProtected.offsetHeight;
+        }
+
+        return super.getMeasuredHeight();
+    }
+
+    public focus(): boolean {
+        if (this.nativeViewProtected) {
+            return this.nativeViewProtected.focus();
+        }
+
+        return false;
     }
 
     [isEnabledProperty.setNative](value: boolean) {
@@ -86,7 +157,7 @@ export class View extends ViewCommon {
             return "collapse";
         }
 
-        throw new Error(`Unsupported android.view.View visibility: ${nativeVisibility}. Currently supported values are android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE.`);
+        throw new Error(`Unsupported View visibility: ${style.visibility}. Currently supported values are "visible", "hidden", "collapse".`);
     }
     [visibilityProperty.setNative](value: Visibility) {
         const style = this.nativeViewProtected.style;
@@ -224,27 +295,101 @@ export class View extends ViewCommon {
         this.nativeViewProtected.style.zIndex = value;
     }
 
-    // [backgroundInternalProperty.getDefault](): android.graphics.drawable.Drawable {
-    //     const nativeView = this.nativeViewProtected;
-    //     const drawable = nativeView.getBackground();
-    //     if (drawable) {
-    //         const constantState = drawable.getConstantState();
-    //         if (constantState) {
-    //             try {
-    //                 return constantState.newDrawable(nativeView.getResources());
-    //             } catch (e) {
-    //                 return drawable;
-    //             }
-    //         } else {
-    //             return drawable;
-    //         }
-    //     }
-    //
-    //     return null;
-    // }
-    // [backgroundInternalProperty.setNative](value: android.graphics.drawable.Drawable | Background) {
-    //     this._redrawNativeBackground(value);
-    // }
+    [backgroundImageProperty.getDefault]() {
+        return this.nativeViewProtected.style.backgroundImage;
+    }
+
+    [backgroundImageProperty.setNative](value) {
+        this.nativeViewProtected.style.backgroundImage = value;
+    }
+
+    [backgroundColorProperty.getDefault]() {
+        return this.nativeViewProtected.style.backgroundColor;
+    }
+
+    [backgroundColorProperty.setNative](value) {
+        this.nativeViewProtected.style.backgroundColor = value;
+    }
+
+    [backgroundPositionProperty.getDefault]() {
+        return this.nativeViewProtected.style.backgroundPosition;
+    }
+
+    [backgroundPositionProperty.setNative](value) {
+        this.nativeViewProtected.style.backgroundPosition = value;
+    }
+
+    [backgroundSizeProperty.getDefault]() {
+        return this.nativeViewProtected.style.backgroundSize;
+    }
+
+    [backgroundSizeProperty.setNative](value) {
+        this.nativeViewProtected.style.backgroundSize = value;
+    }
+
+    [paddingLeftProperty.getDefault]() {
+        return this.nativeViewProtected.style.paddingLeft;
+    }
+
+    [paddingLeftProperty.setNative](value) {
+        this.nativeViewProtected.style.paddingLeft = value;
+    }
+
+    [paddingRightProperty.getDefault]() {
+        return this.nativeViewProtected.style.paddingRight;
+    }
+
+    [paddingRightProperty.setNative](value) {
+        this.nativeViewProtected.style.paddingRight = value;
+    }
+
+    [paddingTopProperty.getDefault]() {
+        return this.nativeViewProtected.style.paddingTop;
+    }
+
+    [paddingTopProperty.setNative](value) {
+        this.nativeViewProtected.style.paddingTop = value;
+    }
+
+    [paddingBottomProperty.getDefault]() {
+        return this.nativeViewProtected.style.paddingBottom;
+    }
+
+    [paddingBottomProperty.setNative](value) {
+        this.nativeViewProtected.style.paddingBottom = value;
+    }
+
+    [borderLeftColorProperty.setNative](value) {
+        this.nativeViewProtected.style.borderLeftColor = value;
+    }
+
+    [borderRightColorProperty.setNative](value) {
+        this.nativeViewProtected.style.borderRightColor = value;
+    }
+
+    [borderTopColorProperty.setNative](value) {
+        this.nativeViewProtected.style.borderTopColor = value;
+    }
+
+    [borderBottomColorProperty.setNative](value) {
+        this.nativeViewProtected.style.borderBottomColor = value;
+    }
+
+    [borderLeftWidthProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.borderLeftWidth = value;
+    }
+
+    [borderRightWidthProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.borderRightWidth = value;
+    }
+
+    [borderTopWidthProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.borderTopWidth = value;
+    }
+
+    [borderBottomWidthProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.borderBottomWidth = value;
+    }
 
     [minWidthProperty.setNative](value) {
         if (this.parent instanceof CustomLayoutView && this.parent.nativeViewProtected) {

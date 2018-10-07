@@ -1,43 +1,41 @@
-import { 
-    LayoutBaseCommon, clipToBoundsProperty, isPassThroughParentEnabledProperty, View
+import {
+    LayoutBaseCommon,
+    clipToBoundsProperty,
+    isPassThroughParentEnabledProperty,
+    paddingTopProperty,
+    Length,
+    paddingRightProperty, paddingBottomProperty, paddingLeftProperty
 } from "./layout-base-common";
 
 export * from "./layout-base-common";
 
 export class LayoutBase extends LayoutBaseCommon {
-    nativeViewProtected: UIView;
 
-    public addChild(child: View): void {
-        super.addChild(child);
-        this.requestLayout();
+    [paddingTopProperty.getDefault](): Length {
+        return { value: this._defaultPaddingTop, unit: "px" };
+    }
+    [paddingTopProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingTop = value + "px";
     }
 
-    public insertChild(child: View, atIndex: number): void {
-        super.insertChild(child, atIndex);
-        this.requestLayout();
+    [paddingRightProperty.getDefault](): Length {
+        return { value: this._defaultPaddingRight, unit: "px" };
+    }
+    [paddingRightProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingRight = value + "px";
     }
 
-    public removeChild(child: View): void {
-        super.removeChild(child);
-        this.requestLayout();
+    [paddingBottomProperty.getDefault](): Length {
+        return { value: this._defaultPaddingBottom, unit: "px" };
+    }
+    [paddingBottomProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingBottom = value + "px";
     }
 
-    _setNativeClipToBounds() {
-        if (this.clipToBounds) {
-            this.nativeViewProtected.clipsToBounds = true;
-        } else {
-            super._setNativeClipToBounds();
-        }
+    [paddingLeftProperty.getDefault](): Length {
+        return { value: this._defaultPaddingLeft, unit: "px" };
     }
-
-    [clipToBoundsProperty.getDefault](): boolean {
-        return false;
-    }
-    [clipToBoundsProperty.setNative](value: boolean) {
-        this._setNativeClipToBounds();
-    }
-
-    [isPassThroughParentEnabledProperty.setNative](value: boolean) {
-        (<any>this.nativeViewProtected).setPassThroughParent(value);
+    [paddingLeftProperty.setNative](value: Length) {
+        this.nativeViewProtected.style.paddingLeft = value + "px";
     }
 }

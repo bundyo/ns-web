@@ -13,16 +13,20 @@ export * from "./button-common";
 let ClickListener;
 
 function initializeClickListener(): void {
-    const owner = this;
-
     if (ClickListener) {
         return;
     }
 
     class ClickListenerImpl {
+        private owner: any;
+
+        constructor(owner) {
+            this.owner = owner;
+        }
+
         public onClick(v): void {
-            if (owner) {
-                owner._emit(ButtonBase.tapEvent);
+            if (this.owner) {
+                this.owner._emit(ButtonBase.tapEvent);
             }
         }
     }
@@ -40,9 +44,9 @@ export class Button extends ButtonBase {
     public initNativeView(): void {
         super.initNativeView();
         const nativeView = this.nativeViewProtected;
-        initializeClickListener.call(this);
+        initializeClickListener();
         const clickListener = new ClickListener(this);
-        nativeView.onclick = clickListener.onClick;
+        nativeView.onclick = clickListener.onClick.bind(clickListener);
         (<any>nativeView).clickListener = clickListener;
     }
 
@@ -78,37 +82,37 @@ export class Button extends ButtonBase {
         return { value: this.nativeViewProtected.style.paddingTop, unit: "px" }
     }
     [paddingTopProperty.setNative](value: Length) {
-        org.nativescript.widgets.ViewHelper.setPaddingTop(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderTopWidth, 0));
+        this.nativeViewProtected.style.paddingTop = value;
     }
 
     [paddingRightProperty.getDefault](): Length {
         return { value: this.nativeViewProtected.style.paddingRight, unit: "px" }
     }
     [paddingRightProperty.setNative](value: Length) {
-        org.nativescript.widgets.ViewHelper.setPaddingRight(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderRightWidth, 0));
+        this.nativeViewProtected.style.paddingRight = value;
     }
 
     [paddingBottomProperty.getDefault](): Length {
         return { value: this.nativeViewProtected.style.paddingBottom, unit: "px" }
     }
     [paddingBottomProperty.setNative](value: Length) {
-        org.nativescript.widgets.ViewHelper.setPaddingBottom(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderBottomWidth, 0));
+        this.nativeViewProtected.style.paddingBottom = value;
     }
 
     [paddingLeftProperty.getDefault](): Length {
         return { value: this.nativeViewProtected.style.paddingLeft, unit: "px" }
     }
     [paddingLeftProperty.setNative](value: Length) {
-        org.nativescript.widgets.ViewHelper.setPaddingLeft(this.nativeViewProtected, Length.toDevicePixels(value, 0) + Length.toDevicePixels(this.style.borderLeftWidth, 0));
+        this.nativeViewProtected.style.paddingTop = value;
     }
 
     [zIndexProperty.setNative](value: number) {
-        org.nativescript.widgets.ViewHelper.setZIndex(this.nativeViewProtected, value);
+        this.nativeViewProtected.style.zIndex = value;
     }
 
     [textAlignmentProperty.setNative](value: TextAlignment) {
         // Button initial value is center.
         const newValue = value === "initial" ? "center" : value;
-        super[textAlignmentProperty.setNative](newValue);
+        this.nativeViewProtected.style.textAlign = value;
     }
 }

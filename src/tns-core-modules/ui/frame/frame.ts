@@ -146,6 +146,23 @@ export class Frame extends FrameBase {
         web.nativeApp.scheduleAnimation(this._currentEntry, newEntry, this.setCurrent.bind(this, newEntry, this._isBack));
     }
 
+    public setCurrent(entry: BackstackEntry, isBack: boolean): void {
+        const current = this._currentEntry;
+        const currentEntryChanged = current !== entry;
+        if (currentEntryChanged) {
+            this._updateBackstack(entry, isBack);
+
+            super.setCurrent(entry, isBack);
+
+            // If we had real navigation process queue.
+            this._processNavigationQueue(entry.resolvedPage);
+        } else {
+            // Otherwise currentPage was recreated so this wasn't real navigation.
+            // Continue with next item in the queue.
+            this._processNextNavigationEntry();
+        }
+    }
+
     _createPage(entry) {
         if (!entry) {
             traceError(`onCreateView: entry is null or undefined`);
@@ -191,6 +208,7 @@ export class Frame extends FrameBase {
         super._goBackCore(backstackEntry);
         navDepth = backstackEntry.navDepth;
 
+        web.nativeApp.scheduleAnimation(this._currentEntry, backstackEntry, this.setCurrent.bind(this, backstackEntry, this._isBack));
     }
 
     public _removeEntry(removed: BackstackEntry): void {

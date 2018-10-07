@@ -3,7 +3,7 @@ import HyperHTMLElement from 'hyperhtml-element';
 export default class NSElement extends HyperHTMLElement {
 
     // observed attributes are automatically defined as accessors
-    static get observedAttributes() { return ["color", "left", "right", "top", "bottom", "width", "height", "margin", "padding", "background-color"]; }
+    static get observedAttributes() { return ["color", "left", "right", "top", "bottom", "width", "height", "margin", "padding", "background-color", "row", "col", "rowspan", "colspan"]; }
 
     // boolean attributes are automatically defined as accessors
     // and will set or remove the passed value

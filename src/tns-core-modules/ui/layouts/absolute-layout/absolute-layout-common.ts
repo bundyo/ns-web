@@ -50,10 +50,12 @@ export const leftProperty = new Property<View, Length>({
     name: "left", defaultValue: zeroLength,
     valueChanged: (target, oldValue, newValue) => {
         target.effectiveLeft = Length.toDevicePixels(newValue, 0);
-        const layout = target.parent;
-        if (layout instanceof AbsoluteLayoutBase) {
-            layout.onLeftChanged(target, oldValue, newValue);
-        }
+        setTimeout(() => {
+            const layout = target.parent;
+            if (layout instanceof AbsoluteLayoutBase) {
+                layout.onLeftChanged(target, oldValue, newValue);
+            }
+        });
     }, valueConverter: (v) => Length.parse(v)
 });
 leftProperty.register(View);
@@ -62,10 +64,12 @@ export const topProperty = new Property<View, Length>({
     name: "top", defaultValue: zeroLength,
     valueChanged: (target, oldValue, newValue) => {
         target.effectiveTop = Length.toDevicePixels(newValue, 0);
-        const layout = target.parent;
-        if (layout instanceof AbsoluteLayoutBase) {
-            layout.onTopChanged(target, oldValue, newValue);
-        }
+        setTimeout(() => {
+            const layout = target.parent;
+            if (layout instanceof AbsoluteLayoutBase) {
+                layout.onTopChanged(target, oldValue, newValue);
+            }
+        });
     }, valueConverter: (v) => Length.parse(v)
 });
 topProperty.register(View);

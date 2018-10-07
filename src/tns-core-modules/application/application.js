@@ -171,12 +171,12 @@ class Application {
         }
     }
 
-    scheduleAnimation(currentEntry, nextEntry, callback, frame) {
+    scheduleAnimation(currentEntry, nextEntry, callback) {
         if (currentEntry) {
-            var prevElement = currentEntry.resolvedPage.sender,
-                nextElement = nextEntry.resolvedPage.sender,
+            const prevElement = currentEntry.resolvedPage.nativeView,
+                nextElement = nextEntry.resolvedPage.nativeView,
                 parentElement = nextElement.parentElement,
-                transitionEnd = function () {
+                transitionEnd = () => {
                     parentElement.removeEventListener("transitionend", transitionEnd);
 
                     parentElement.classList.remove("ns-fx", "ns-fx-end", "ns-fx-start", "ns-fx-slide", "ns-fx-reverse");

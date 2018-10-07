@@ -16,11 +16,7 @@ export default class NSButton extends NSElement {
         <span>${this.text}</span>`;
     }
 
-    onclick(e) {
-        e.stopPropagation();
-
-        console.log(this, 'tap', e.target);
-    }
+    onclick(e) {}
 
     get defaultState() {
         return {

@@ -192,9 +192,11 @@ ns-scroll-view {
     transition: all 250ms ease-out;
 }
 
+/*
 .ns-fx {
     position: relative;
 }
+*/
 
 .ns-fx .ns-fx-current {
     z-index: 0;

@@ -1,5 +1,5 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd"
-      xmlns:app="."
+      xmlns:app="~/details-page"
       navigatedTo="pageNavigatedTo">
     <ActionBar title="Details">
         <ActionItem android.position="left" class="btn" tap="{{ goBack }}" text="Back"/>

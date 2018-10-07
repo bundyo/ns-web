@@ -102,12 +102,19 @@ global.registerWebpackModules = function registerWebpackModules(context: Context
 global.moduleExists = function (name) {
     let resolver;
 
+    name = name.replace(/^\.\//, "");
+
     try {
-        resolver = context.resolve("./" + name + ".js");
+        resolver = context.resolve("./" + name);
     } catch (e) {
         try {
-            resolver = context.resolve("./" + name + "/" + name + ".js");
-        } catch (e) {}
+            resolver = context.resolve("./" + name + ".js");
+        } catch (e) {
+            try {
+                resolver = context.resolve("./" + name + "/" + name + ".js");
+            } catch (e) {
+            }
+        }
     }
 
     return modules.has(name) || !!resolver;
@@ -120,13 +127,17 @@ global.loadModule = function (name) {
         return loader();
     }
     else {
-        //try {
-        result = context("./" + name + ".js");
-        //} catch (e) {
-        //    try {
-        //        result = context("./" + name + "/" + name + ".js");
-        //    } catch (e) {}
-        //}
+        name = name.replace(/^\.\//, "");
+
+        try {
+            result = context("./" + name);
+        } catch (e) {
+            try {
+                result = context("./" + name + ".js");
+            } catch (e) {
+            }
+        }
+
         modules.set(name, function () { return result; });
         return result;
     }
