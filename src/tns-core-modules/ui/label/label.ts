@@ -102,7 +102,7 @@ export class Label extends TextBase implements LabelDefinition {
         // }
     }
 
-    private _measureNativeView(width: number, widthMode: number, height: number, heightMode: number): { width: number, height: number } {
+    private _measureNativeView(width: number, widthMode: number, height: number, heightMode: number) {
         // const view = <UILabel>this.nativeTextViewProtected;
         //
         // const nativeSize = view.textRectForBoundsLimitedToNumberOfLines(

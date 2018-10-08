@@ -281,6 +281,8 @@ export let android: AndroidApplication;
  */
 export let ios: iOSApplication;
 
+export let web: WebApplication;
+
 /**
  * Data for the Android activity events.
  */
@@ -576,7 +578,7 @@ export interface iOSApplication {
     removeNotificationObserver(observer: any, notificationName: string): void;
 }
 
-export class webApplication extends Observable {
+export class WebApplication extends Observable {
 
     /* tslint:enable */
     /**

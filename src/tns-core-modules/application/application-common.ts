@@ -32,7 +32,7 @@ export function hasLaunched(): boolean {
 
 export { Observable };
 
-import { UnhandledErrorEventData, iOSApplication, AndroidApplication, webApplication, CssChangedEventData, LoadAppCSSEventData } from ".";
+import { UnhandledErrorEventData, iOSApplication, AndroidApplication, WebApplication, CssChangedEventData, LoadAppCSSEventData } from ".";
 
 export { UnhandledErrorEventData, CssChangedEventData, LoadAppCSSEventData };
 
@@ -65,8 +65,8 @@ export const off: typeof events.off = events.off.bind(events);
 export const notify: typeof events.notify = events.notify.bind(events);
 export const hasListeners: typeof events.hasListeners = events.hasListeners.bind(events);
 
-let app: iOSApplication | AndroidApplication | webApplication;
-export function setApplication(instance: iOSApplication | AndroidApplication | webApplication): void {
+let app: iOSApplication | AndroidApplication | WebApplication;
+export function setApplication(instance: iOSApplication | AndroidApplication | WebApplication): void {
     app = instance;
 }
 

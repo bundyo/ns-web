@@ -508,9 +508,9 @@ function createNativePercentLengthProperty(options) {
             if (length == "auto") { // tslint:disable-line
                 setProperty(property, this.nativeViewProtected, auto);
             } else if (typeof length === "number") {
-                setProperty(property, this.nativeViewProtected, length * window.devicePixelRatio + "px");
+                setProperty(property, this.nativeViewProtected, length + "px");
             } else if (length.unit == "dip") { // tslint:disable-line
-                setProperty(property, this.nativeViewProtected, length.value * window.devicePixelRatio + "px");
+                setProperty(property, this.nativeViewProtected, length.value + "px");
             } else if (length.unit == "px") { // tslint:disable-line
                 setProperty(property, this.nativeViewProtected, layout.round(length.value) + length.unit);
             } else if (length.unit == "%") { // tslint:disable-line

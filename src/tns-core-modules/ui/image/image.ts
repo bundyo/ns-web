@@ -89,7 +89,7 @@ export class Image extends ImageBase {
         // this.setMeasuredDimension(widthAndState, heightAndState);
     }
 
-    private static computeScaleFactor(measureWidth: number, measureHeight: number, widthIsFinite: boolean, heightIsFinite: boolean, nativeWidth: number, nativeHeight: number, imageStretch: string): { width: number; height: number } {
+    private static computeScaleFactor(measureWidth: number, measureHeight: number, widthIsFinite: boolean, heightIsFinite: boolean, nativeWidth: number, nativeHeight: number, imageStretch: string) {
     //     let scaleW = 1;
     //     let scaleH = 1;
     //
