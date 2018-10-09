@@ -12,10 +12,21 @@
     "build": "cross-env tsc; NODE_ENV=production webpack --progress --hide-modules"
   },
   "dependencies": {
-    "html-webpack-plugin": "3.2.0",
+    "@angular/animations": "~6.1.0",
+    "@angular/common": "~6.1.0",
+    "@angular/compiler": "~6.1.0",
+    "@angular/core": "~6.1.0",
+    "@angular/forms": "~6.1.0",
+    "@angular/http": "~6.1.0",
+    "@angular/platform-browser": "~6.1.0",
+    "@angular/platform-browser-dynamic": "~6.1.0",
+    "@angular/router": "~6.1.0",
+    "nativescript-angular": "~6.2.0-2018-10-09-150701-01",
+    "reflect-metadata": "~0.1.8",
+    "rxjs": "~6.2.0",
+    "zone.js": "^0.8.26",
     "nativescript-theme-core": "^1.0.4",
     "hyperhtml-element": "^3.1.0",
-    "node-sass": "^4.9.3",
     "nativescript-vue": "^2.0.2"
   },
   "browserslist": [
@@ -23,6 +34,8 @@
   ],
   "devDependencies": {
     "vue": "^2.5.17",
+    "html-webpack-plugin": "3.2.0",
+    "node-sass": "^4.9.3",
     "autoprefixer": "^9.1.5",
     "@babel/core": "^7.1.2",
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
@@ -44,7 +57,9 @@
     "tns-platform-declarations": "^4.3.0-2018-10-03-163950-01",
     "ts-helpers": "^1.1.2",
     "ts-loader": "^5.2.1",
-    "typescript": "^2.6.1",
+    "typescript": "~2.7.2",
+    "nativescript-dev-typescript": "~0.7.0",
+    "@nativescript/schematics": "~0.3.0",
     "vue-loader": "^15.4.2",
     "webpack": "^4.20.2",
     "webpack-cli": "^3.1.2",
