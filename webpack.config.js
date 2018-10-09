@@ -1,16 +1,61 @@
-const path = require('path');
+const { resolve, sep } = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const NsVueTemplateCompiler = require("nativescript-vue-template-compiler");
+
+const nsWebpack = require("nativescript-dev-webpack");
+const nativescriptTarget = require("nativescript-dev-webpack/nativescript-target");
+
+const appComponents = [
+    "tns-core-modules/ui/frame",
+];
+
+const appPath = "vueapp";
+
+const platform = "web";
+const platforms = ["ios", "android", "web"];
+
+const mode = "development";
+
+const appFullPath = resolve(__dirname, appPath);
+
+const entryModule = nsWebpack.getEntryModule(appFullPath);
+const entryPath = `.${sep}${appPath}${sep}${entryModule}.js`;
+
+console.log(`Bundling application for entryPath ${entryPath}...`);
 
 module.exports = {
     mode: 'development',
 
-    entry: './app',
+    target: nativescriptTarget,
+
+    entry: {
+        bundle: entryPath,
+    },
 
     output: {
-        path: path.resolve(__dirname, './dist'),
-        filename: '[name].js'
+        path: resolve(__dirname, './dist'),
+        filename: '[name].js',
+    },
+
+    resolve: {
+        modules: [
+            resolve(__dirname, "app"),
+            "node_modules",
+            resolve(__dirname, "src"),
+            resolve(__dirname, "src/tns-core-modules")],
+        alias: {
+            '~': __dirname,
+            '@': appFullPath,
+            'vue': 'nativescript-vue'
+        },
+        extensions: ['*', '.js', '.vue', '.json', ".scss", ".css"]
+    },
+
+    node: {
+        // Disable node shims that conflict with NativeScript
+        "fs": "empty",
     },
 
     module: {
@@ -49,6 +94,29 @@ module.exports = {
                 },
                 'sass-loader',
             ]
+        }, {
+            test: new RegExp(entryPath),
+            use: [
+                //{
+                //    loader: "nativescript-dev-webpack/bundle-config-loader",
+                //    options: {
+                //        registerPages: true, // applicable only for non-angular apps
+                //        loadCss: true, // load the application css if in debug mode
+                //    },
+                //},
+
+                // Require all Android app components
+                {
+                    loader: "./web-app-components-loader",
+                    options: { modules: appComponents },
+                },
+            ].filter(loader => Boolean(loader)),
+        }, {
+            test: /\.vue$/,
+            loader: 'vue-loader',
+            options: {
+                compiler: NsVueTemplateCompiler,
+            },
         },
         {
             test: /\.html$/,
@@ -67,26 +135,27 @@ module.exports = {
         }]
     },
     plugins: [
+        new VueLoaderPlugin(),
+        new webpack.DefinePlugin({
+            "global.TNS_WEBPACK": "true",
+            "TNS_ENV": JSON.stringify(mode)
+        }),
         new HtmlWebpackPlugin({
             template: 'src/assets/index.html'
+        }),
+        new nsWebpack.GenerateBundleStarterPlugin([
+            "./vendor",
+            "./bundle",
+        ]),
+        new nsWebpack.PlatformFSPlugin({
+            platform,
+            platforms,
         }),
         new MiniCssExtractPlugin({
             filename: "[name].css",
             chunkFilename: "[id].css"
         }),
     ],
-    resolve: {
-        modules: [
-            path.resolve(__dirname, "app"),
-            "node_modules",
-            path.resolve(__dirname, "src/web-modules"),
-            path.resolve(__dirname, "src/tns-core-modules")],
-        alias: {
-            "~": __dirname,
-            'vue$': 'vue/dist/vue.esm.js',
-        },
-        extensions: ['*', '.js', '.vue', '.json']
-    },
     devServer: {
         historyApiFallback: true,
         noInfo: false,
@@ -102,12 +171,6 @@ if (process.env.NODE_ENV === 'production') {
     module.exports.devtool = '#source-map';
     // http://vue-loader.vuejs.org/en/workflow/production.html
     module.exports.plugins = (module.exports.plugins || []).concat([
-        new webpack.DefinePlugin({
-            'process.env': {
-                NODE_ENV: '"production"'
-            },
-            "window.TNS_WEBPACK": "true",
-        }),
         //new webpack.optimize.UglifyJsPlugin({
         //    sourceMap: true,
         //    compress: {

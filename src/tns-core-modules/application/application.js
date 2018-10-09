@@ -1,9 +1,7 @@
-import "~/src/tns-core-modules/bundle-entry-points";
-
 import {
     notify, launchEvent, setApplication
 } from "./application-common";
-import { createViewFromEntry } from "~/src/tns-core-modules/ui/builder";
+import { createViewFromEntry } from "../ui/builder";
 
 import "../../css/nweb.css";
 
@@ -30,10 +28,6 @@ export * from "./application-common";
 class Application {
     constructor(entry) {
         this.started = null;
-    }
-
-    setEntry(entry) {
-        this.entry = entry;
     }
 
     scheduleAnimation(currentEntry, nextEntry, callback) {
@@ -110,44 +104,15 @@ export class WebApplication extends observable.Observable {
         // this.context = webApp.getApplicationContext();
         this._registerPendingReceivers();
 
-        notify({
+        const args = {
             eventName: launchEvent,
             object: this,
-            web: null
-        });
+            root: null
+        };
 
-        //this._rootView = webApp.entry.root;
+        notify(args);
 
-        if (!this._rootView) {
-            // try to navigate to the mainEntry (if specified)
-            if (mainEntry) {
-                if (createRootFrame.value) {
-                    const frame = this._rootView = new Frame();
-                    frame.navigate(mainEntry);
-                } else {
-                    this._rootView = createViewFromEntry(mainEntry);
-                }
-            } else {
-                // TODO: Throw an exception?
-                throw new Error("A Frame must be used to navigate to a Page.");
-            }
-        }
-
-        this._window.content = this._rootView;
-
-        document.body.append(this._rootView.web);
-
-        if (!this._rootView.isLoaded) {
-            this._rootView.callLoaded();
-        }
-
-        return this._rootView;
-        // if (rootView instanceof Frame) {
-        //     this.rootController = this._window.rootViewController = rootView.web.controller;
-        // }
-        // else {
-        //     throw new Error("Root should be either UIViewController or UIView");
-        // }
+        return createRootView(this._rootView || args.root);
     }
 
     get nativeApp() {
@@ -171,6 +136,25 @@ export class WebApplication extends observable.Observable {
                 registerFunc(this.context);
             }
             this._pendingReceiverRegistrations = [];
+        }
+    }
+
+    setWindowContent(view) {
+        if (this._rootView) {
+            // if we already have a root view, we reset it.
+            this._rootView._onRootViewReset();
+
+            this._rootView.web.remove();
+        }
+        const rootView = createRootView(view);
+        this._rootView = rootView;
+
+        if (createRootFrame.value) {
+            // Don't setup as styleScopeHost
+            rootView._setupUI({});
+        } else {
+            // setup view as styleScopeHost
+            rootView._setupAsRootView({});
         }
     }
 }
@@ -198,6 +182,14 @@ function createRootView(v) {
         }
     }
 
+    if (rootView) {
+        document.body.append(rootView.web);
+
+        if (!rootView.isLoaded) {
+            rootView.callLoaded();
+        }
+    }
+
     return rootView;
 }
 
@@ -209,30 +201,36 @@ export function getRootView() {
     return webApp.rootView;
 }
 
+export function getNativeApplication() {
+    return webApp.nativeApp;
+}
+
 export function start(entry) {
     if (started) {
         throw new Error("Application is already started.");
     }
-    if (entry) {
-        mainEntry = entry;
-    }
 
-    if (this.mainModule) {
-        entry = mainEntry = {
-            moduleName: this.mainModule
-        }
-    }
+    started = true;
+    mainEntry = typeof entry === "string" ? { moduleName: entry } : entry;
 
     if (!web.nativeApp) {
         setApplication(web);
 
-        webApp.setEntry(entry);
-
         document.addEventListener("DOMContentLoaded", function () {
             web.init(webApp);
         });
+    } else {
+        const rootView = createRootView();
+        if (rootView) {
+            rootView._setupAsRootView({});
+        }
     }
-    started = true;
+}
+
+export function _resetRootView(entry) {
+    createRootFrame.value = false;
+    mainEntry = typeof entry === "string" ? { moduleName: entry } : entry;
+    webApp.setWindowContent();
 }
 
 export function run(entry) {
