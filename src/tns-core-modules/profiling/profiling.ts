@@ -4,7 +4,7 @@ declare var __stopCPUProfiler: any;
 import { TimerInfo as TimerInfoDefinition, InstrumentationMode } from ".";
 
 export function uptime() {
-    return global.android ? (<any>org).nativescript.Process.getUpTime() : (<any>global).__tns_uptime();
+    return global.android ? (<any>org).nativescript.Process.getUpTime() : (<any>global).__tns_uptime ? (<any>global).__tns_uptime() : 0;
 }
 
 export function log(message: string): void {

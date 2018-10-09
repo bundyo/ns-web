@@ -83,7 +83,7 @@ import { Frame } from "../ui/frame";
 const trace = require("../trace");
 
 trace.enable();
-trace.setCategories(trace.categories.All);
+//trace.setCategories(trace.categories.All);
 
 export class WebApplication extends observable.Observable {
     constructor() {
@@ -107,12 +107,13 @@ export class WebApplication extends observable.Observable {
         const args = {
             eventName: launchEvent,
             object: this,
+            web: webApp,
             root: null
         };
 
         notify(args);
 
-        return createRootView(this._rootView || args.root);
+        return createRootView(this._rootView || args.root || webApp.entry.root);
     }
 
     get nativeApp() {

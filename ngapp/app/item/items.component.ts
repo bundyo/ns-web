@@ -1,7 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 
-import { Item } from "./item.js";
-import { ItemService } from "./item.service.js";
+import { Item, ItemService } from "./item.service.js";
 
 @Component({
     selector: "ns-items",

@@ -1,6 +1,10 @@
 import { Injectable } from "@angular/core";
 
-import { Item } from "./item";
+export interface Item {
+    id: number;
+    name: string;
+    role: string;
+}
 
 @Injectable()
 export class ItemService {

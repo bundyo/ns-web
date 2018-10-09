@@ -411,6 +411,8 @@ export class FileSystemAccess {
         //
         // return normalized;
 
+        path = path.replace(/^\/?ngapp\//, "");
+
         //context entries start with "./"
         if (!path.startsWith("./")) {
             if (path.startsWith("/")) {

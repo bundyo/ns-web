@@ -1,8 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 
-import { Item } from "./item";
-import { ItemService } from "./item.service";
+import { Item, ItemService } from "./item.service";
 
 @Component({
     selector: "ns-details",

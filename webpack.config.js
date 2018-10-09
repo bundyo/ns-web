@@ -142,7 +142,8 @@ module.exports = {
         new VueLoaderPlugin(),
         new webpack.DefinePlugin({
             "global.TNS_WEBPACK": "true",
-            "TNS_ENV": JSON.stringify(mode)
+            "TNS_ENV": JSON.stringify(mode),
+            "TNS_APPPATH": appPath
         }),
         new HtmlWebpackPlugin({
             template: 'src/assets/index.html'

@@ -1,7 +1,7 @@
 ﻿// Required by TypeScript compiler
 require("./decorators");
 
-const context: any = require.context("../../../vueapp", true, /\.(js|css|xml|html|vue)$/i);
+const context: any = require.context("../../../ngapp", true, /\.(js|css|xml|html|vue)$/i);
 global.context = context;
 
 // Required by V8 snapshot generator
@@ -102,7 +102,7 @@ global.registerWebpackModules = function registerWebpackModules(context: Context
 global.moduleExists = function (name) {
     let resolver;
 
-    name = name.replace(/^\/?[.~]\//, "");
+    name = name.replace(/^\/?[.~]\//, "").replace(/^\/?ngapp\//, "");
 
     try {
         resolver = context.resolve("./" + name);
@@ -127,7 +127,7 @@ global.loadModule = function (name) {
         return loader();
     }
     else {
-        name = name.replace(/^\/?[.~]\//, "");
+        name = name.replace(/^\/?[.~]\//, "").replace(/^\/?ngapp\//, "");
 
         try {
             result = context("./" + name);

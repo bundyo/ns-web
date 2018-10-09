@@ -685,7 +685,7 @@ export abstract class ViewBase extends Observable implements ViewBaseDefinition 
     }
 
     @profile
-    public _setupUI(context: android.content.Context, atIndex?: number, parentIsLoaded?: boolean): void {
+    public _setupUI(context, atIndex?: number, parentIsLoaded?: boolean): void {
         if (this._context === context) {
             return;
         } else if (this._context) {

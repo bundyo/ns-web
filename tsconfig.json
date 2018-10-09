@@ -1,5 +1,13 @@
 {
     "compilerOptions": {
+        "emitDecoratorMetadata": true,
+        "typeRoots": [
+            "node_modules/@types"
+        ],
+        "lib": [
+            "es2017",
+            "dom"
+        ],
         /* From NativeScript */
         "noEmitOnError": false,
         "noEmitHelpers": false,
@@ -16,17 +24,12 @@
         "sourceMap": true,
         "jsx": "react",
         "reactNamespace": "UIBuilder",
-        "lib": [
-            "es6",
-            "dom"
-        ],
         "baseUrl": ".",
         "paths": {
             "~/*": [
                 "src/*"
             ],
             "*": [
-                "nativescript-intl/*",
                 "~/tns-core-modules/*"
             ]
         }
