@@ -11,7 +11,7 @@ const appComponents = [
     "tns-core-modules/ui/frame",
 ];
 
-const appPath = "vueapp";
+const appPath = "ngapp"; // "ngapp", "vueapp", "app"
 
 const platform = "web";
 const platforms = ["ios", "android", "web"];
@@ -41,8 +41,8 @@ module.exports = {
 
     resolve: {
         modules: [
-            resolve(__dirname, "app"),
-            "node_modules",
+            resolve(__dirname, appPath),
+            resolve(__dirname, "node_modules"),
             resolve(__dirname, "src"),
             resolve(__dirname, "src/tns-core-modules")],
         alias: {
