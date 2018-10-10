@@ -44,6 +44,7 @@
     "cross-env": "^5.2.0",
     "css-hot-loader": "^1.4.2",
     "css-loader": "^1.0.0",
+    "copy-webpack-plugin": "^4.5.3",
     "file-loader": "^2.0.0",
     "html-loader": "^0.5.5",
     "mini-css-extract-plugin": "^0.4.3",
