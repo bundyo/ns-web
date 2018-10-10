@@ -30,7 +30,7 @@
                 "src/*"
             ],
             "*": [
-                "~/tns-core-modules/*"
+                "/src/*"
             ]
         }
         // "lib": [],                             /* Specify library files to be included in the compilation. */
@@ -89,7 +89,6 @@
     "exclude": [
         "**/*.android.ts",
         "**/*.ios.ts",
-        "node_modules/**/*",
-        "src-ng/**/*"
+        "~/node_modules/**/*"
     ]
 }

@@ -24,15 +24,9 @@ core theme, such as p-20, btn, h2, and list-group. You can view a full list of t
 class names available for styling your app at https://docs.nativescript.org/ui/theme.
 -->
 <StackLayout class="page">
-    <Button [nsRouterLink]="['/item', 1]" [text]="items[1].name"></Button>
-    <Button [nsRouterLink]="['/item', 2]" [text]="items[2].name"></Button>
-    <Button [nsRouterLink]="['/item', 3]" [text]="items[3].name"></Button>
-<!--
-    <ListView [items]="items" class="list-group">
-        <ng-template let-item="item">
-            <Label [nsRouterLink]="['/item', item.id]" [text]="item.name"
-                class="list-group-item"></Label>
-        </ng-template>
-    </ListView>
--->
+    <Button [nsRouterLink]="['/item', 1]" [text]="itemService.getItem(1).name"></Button>
+    <Button [nsRouterLink]="['/item', 3]" [text]="itemService.getItem(3).name"></Button>
+    <Button [nsRouterLink]="['/item', 5]" [text]="itemService.getItem(5).name"></Button>
+    <Button [nsRouterLink]="['/item', 7]" [text]="itemService.getItem(7).name"></Button>
+    <Button [nsRouterLink]="['/item', 9]" [text]="itemService.getItem(9).name"></Button>
 </StackLayout>

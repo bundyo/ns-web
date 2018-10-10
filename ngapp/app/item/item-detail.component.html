@@ -1,4 +1,6 @@
-<ActionBar title="Details" class="action-bar"></ActionBar>
+<ActionBar title="Details" class="action-bar">
+    <ActionItem web.position="left" class="btn" (tap)="goBack()" text="Back"></ActionItem>
+</ActionBar>
 <StackLayout orientation="vertical" class="page">
     <StackLayout class="m-15">
         <Label class="h2" [text]="item.id + '. '"></Label>
