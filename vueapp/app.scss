@@ -8,3 +8,11 @@
 
 // Global SCSS styling
 // @see https://docs.nativescript.org/ui/styling
+
+ScrollView {
+    padding: 10;
+}
+
+Image {
+    horizontal-align: center;
+}

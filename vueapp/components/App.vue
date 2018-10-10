@@ -1,9 +1,17 @@
 <template>
     <Page>
-        <ActionBar title="Welcome to NativeScript-Vue!"/>
-        <GridLayout colums="*" rows="*">
-            <Label class="message" :text="msg" col="0" row="0"/>
-        </GridLayout>
+        <ActionBar :title="msg"/>
+
+        <ScrollView>
+            <StackLayout class="m-15">
+                <!-- >> button-tap-event-html -->
+                <Image src="vueapp/assets/images/NativeScript-Vue.png"></Image>
+
+                <Button class="btn btn-primary btn-active" id="button" text="Tap me!" @tap="count++"/>
+                <Label :text="`Tapped ${count} times`"/>
+                <!-- << button-tap-event-html -->
+            </StackLayout>
+        </ScrollView>
     </Page>
 </template>
 
@@ -11,22 +19,9 @@
   export default {
     data() {
       return {
-        msg: 'Hello World!'
+        msg: 'Welcome to NativeScript-Vue!',
+        count: 0
       };
     }
   }
 </script>
-
-<style scoped>
-    ActionBar {
-        background-color: #53ba82;
-        color: #ffffff;
-    }
-
-    .message {
-        vertical-align: center;
-        text-align: center;
-        font-size: 20;
-        color: #333333;
-    }
-</style>

@@ -1,8 +1,10 @@
-const { resolve, sep } = require('path');
+const { relative, resolve, sep } = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const { VueLoaderPlugin } = require('vue-loader');
 const NsVueTemplateCompiler = require("nativescript-vue-template-compiler");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const nsWebpack = require("nativescript-dev-webpack");
 const nativescriptTarget = require("nativescript-dev-webpack/nativescript-target");
@@ -11,7 +13,8 @@ const appComponents = [
     "tns-core-modules/ui/frame",
 ];
 
-const appPath = "ngapp"; // "ngapp", "vueapp", "app"
+const appPath = "vueapp"; // "ngapp", "vueapp", "app"
+const appResourcesPath = appPath + "/App_Resources";
 
 const platform = "web";
 const platforms = ["ios", "android", "web"];
@@ -19,6 +22,7 @@ const platforms = ["ios", "android", "web"];
 const mode = "development";
 
 const appFullPath = resolve(__dirname, appPath);
+const appResourcesFullPath = resolve(__dirname, appResourcesPath);
 
 const entryModule = nsWebpack.getEntryModule(appFullPath);
 const entryPath = `.${sep}${appPath}${sep}${entryModule}.js`;
@@ -130,7 +134,7 @@ module.exports = {
             test: /\.(png|jpg|gif|svg)$/,
             loader: 'file-loader',
             options: {
-                name: '[name].[ext]?[hash]'
+                name: 'images/[name].[ext]?[hash]'
             }
         }]
     },
@@ -177,6 +181,11 @@ if (process.env.NODE_ENV === 'production') {
         //        warnings: false
         //    }
         //}),
+        new CopyWebpackPlugin([
+            { from: "fonts/**" },
+            { from: "**/*.+(jpg|png)" },
+            { from: "assets/**/*" },
+        ], { ignore: [ "dist/**/*", "node_modules/**/*", "App_Resources/**/*" ] }),
         new webpack.LoaderOptionsPlugin({
             minimize: true
         })
