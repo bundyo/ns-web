@@ -2,7 +2,7 @@ var postcss = require('postcss'),
     digitRegExp = /^[\d\s]+$/,
     digitReplacementRegExp = /(\d+)+/g,
     dashCapitalRegExp = /([A-Z]?[a-z\d])([A-Z])/g,
-    selectorRegExp = /(^\s?|>\s?|\+\s?|~\s?|\s+)([A-Z]\w+?\b)/gm,
+    selectorRegExp = /(^\s?|>\s?|\+\s?|~\s?|,\s?|\s+)([A-Z]\w+?\b)/gm,
     dashCase = function (str) {
         return str.replace(dashCapitalRegExp, '$1-$2').toLowerCase();
     },

@@ -168,6 +168,7 @@ export abstract class ViewBase extends Observable implements ViewBaseDefinition 
 
     private _onLoadedCalled: boolean = false;
     private _onUnloadedCalled: boolean = false;
+    private _webView: Object;
     private _iosView: Object;
     private _androidView: Object;
     private _style: Style;
@@ -290,6 +291,11 @@ export abstract class ViewBase extends Observable implements ViewBaseDefinition 
     get ios(): any {
         // this._disableNativeViewRecycling = true;
         return this._iosView;
+    }
+
+    get web(): any {
+        // this._disableNativeViewRecycling = true;
+        return this._webView;
     }
 
     get isLoaded(): boolean {
