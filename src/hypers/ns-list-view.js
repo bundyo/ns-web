@@ -2,7 +2,7 @@ import NSElement from "./ns-element";
 
 export default class NSListView extends NSElement {
 
-    static get observedAttributes() { return ["icon", "icon-align", "text"].concat(super.observedAttributes); }
+    //static get observedAttributes() { return ["items", "itemtap"].concat(super.observedAttributes); }
 
     created() {
         super.created();
@@ -11,18 +11,18 @@ export default class NSListView extends NSElement {
     }
 
     render() {
-        return this.html`
-        <i class="${this.state.iconClass}"></i>
-        <span>${this.text}</span>`;
+        const something = this.adapter.getView(0);
+
+        return this.html;
     }
 
     onclick(e) {}
 
-    get defaultState() {
-        return {
-            iconClass: `ns-button__icon fa fa-${this.icon} -${this.iconAlign}`
-        };
-    }
+    //get defaultState() {
+    //    return {
+    //        iconClass: `ns-button__icon fa fa-${this.icon} -${this.iconAlign}`
+    //    };
+    //}
 }
 
 NSListView.define('ns-list-view');
