@@ -23,6 +23,7 @@ import "../../hypers/ns-page";
 import "../../hypers/ns-frame";
 import "../../hypers/ns-image";
 import "../../hypers/ns-label";
+import "../../hypers/ns-list-view";
 
 // First reexport so that app module is initialized.
 export * from "./application-common";
@@ -90,6 +91,8 @@ const trace = require("../trace");
 
 trace.enable();
 trace.setCategories(trace.categories.All);
+
+let viewId = 1;
 
 export class WebApplication extends observable.Observable {
     constructor() {
@@ -160,6 +163,10 @@ export class WebApplication extends observable.Observable {
 
     get rootView() {
         return this._rootView;
+    }
+
+    static generateViewId() {
+        return viewId++;
     }
 
     _registerPendingReceivers() {

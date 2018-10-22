@@ -1,479 +1,197 @@
-import { ItemEventData } from ".";
+import { ItemEventData, ItemsSource } from ".";
 import {
-    ListViewBase, View, KeyedTemplate, Length, Observable, Color,
-    separatorColorProperty, itemTemplatesProperty, iosEstimatedRowHeightProperty, layout, EventData
+    ListViewBase, View, KeyedTemplate, Length, unsetValue, Observable, Color,
+    separatorColorProperty, itemTemplatesProperty
 } from "./list-view-common";
 import { StackLayout } from "../layouts/stack-layout";
 import { ProxyViewContainer } from "../proxy-view-container";
+import { LayoutBase } from "../layouts/layout-base";
 import { profile } from "../../profiling";
-import * as trace from "../../trace";
-import { ios as iosUtils } from "../../utils";
+import { WebApplication } from "../../application";
+
+import NSListView from "../../../hypers/ns-list-view";
 
 export * from "./list-view-common";
 
 const ITEMLOADING = ListViewBase.itemLoadingEvent;
 const LOADMOREITEMS = ListViewBase.loadMoreItemsEvent;
 const ITEMTAP = ListViewBase.itemTapEvent;
-const DEFAULT_HEIGHT = 44;
 
-const infinity = layout.makeMeasureSpec(0, layout.UNSPECIFIED);
+let ItemClickListener;
 
-interface ViewItemIndex {
-    _listViewItemIndex?: number;
-}
-
-type ItemView = View & ViewItemIndex;
-const majorVersion = iosUtils.MajorVersion;
-
-class ListViewCell extends UITableViewCell {
-    public static initWithEmptyBackground(): ListViewCell {
-        const cell = <ListViewCell>ListViewCell.new();
-        // Clear background by default - this will make cells transparent 
-        cell.backgroundColor = null;
-        return cell;
+function initializeItemClickListener(): void {
+    if (ItemClickListener) {
+        return;
     }
 
-    initWithStyleReuseIdentifier(style: UITableViewCellStyle, reuseIdentifier: string): this {
-        const cell = <this>super.initWithStyleReuseIdentifier(style, reuseIdentifier);
-        // Clear background by default - this will make cells transparent 
-        cell.backgroundColor = null;
-        return cell;
-    }
+    class ItemClickListenerImpl {
+        constructor(public owner: ListView) {
+        }
 
-    public willMoveToSuperview(newSuperview: UIView): void {
-        let parent = <ListView>(this.view ? this.view.parent : null);
-
-        // When inside ListView and there is no newSuperview this cell is 
-        // removed from native visual tree so we remove it from our tree too.
-        if (parent && !newSuperview) {
-            parent._removeContainer(this);
+        onItemClick(parent, convertView, index: number, id: number) {
+            const owner = this.owner;
+            //const view = owner._realizedTemplates.get(owner._getItemTemplate(index).key).get(convertView);
+            owner.notify({ eventName: ITEMTAP, object: owner, index: index, view: view });
         }
     }
 
-    public get view(): View {
-        return this.owner ? this.owner.get() : null
-    }
-
-    public owner: WeakRef<View>;
-}
-
-function notifyForItemAtIndex(listView: ListViewBase, cell: any, view: View, eventName: string, indexPath: NSIndexPath) {
-    let args = <ItemEventData>{ eventName: eventName, object: listView, index: indexPath.row, view: view, ios: cell, android: undefined };
-    listView.notify(args);
-    return args;
-}
-
-class DataSource extends NSObject implements UITableViewDataSource {
-    public static ObjCProtocols = [UITableViewDataSource];
-
-    private _owner: WeakRef<ListView>;
-
-    public static initWithOwner(owner: WeakRef<ListView>): DataSource {
-        let dataSource = <DataSource>DataSource.new();
-        dataSource._owner = owner;
-        return dataSource;
-    }
-
-    public tableViewNumberOfRowsInSection(tableView: UITableView, section: number) {
-        let owner = this._owner.get();
-        return (owner && owner.items) ? owner.items.length : 0;
-    }
-
-    public tableViewCellForRowAtIndexPath(tableView: UITableView, indexPath: NSIndexPath): UITableViewCell {
-        // We call this method because ...ForIndexPath calls tableViewHeightForRowAtIndexPath immediately (before we can prepare and measure it).
-        let owner = this._owner.get();
-        let cell: ListViewCell;
-        if (owner) {
-            let template = owner._getItemTemplate(indexPath.row);
-            cell = <ListViewCell>(tableView.dequeueReusableCellWithIdentifier(template.key) || ListViewCell.initWithEmptyBackground());
-            owner._prepareCell(cell, indexPath);
-
-            let cellView: View = cell.view;
-            if (cellView && cellView.isLayoutRequired) {
-                // Arrange cell views. We do it here instead of _layoutCell because _layoutCell is called 
-                // from 'tableViewHeightForRowAtIndexPath' method too (in iOS 7.1) and we don't want to arrange the fake cell.
-                let width = layout.getMeasureSpecSize(owner.widthMeasureSpec);
-                let rowHeight = owner._effectiveRowHeight;
-                let cellHeight = rowHeight > 0 ? rowHeight : owner.getHeight(indexPath.row);
-                View.layoutChild(owner, cellView, 0, 0, width, cellHeight);
-            }
-        }
-        else {
-            cell = <ListViewCell>ListViewCell.initWithEmptyBackground();
-        }
-        return cell;
-    }
-}
-
-class UITableViewDelegateImpl extends NSObject implements UITableViewDelegate {
-    public static ObjCProtocols = [UITableViewDelegate];
-
-    private _owner: WeakRef<ListView>;
-
-    private _measureCellMap: Map<string, ListViewCell>;
-
-    public static initWithOwner(owner: WeakRef<ListView>): UITableViewDelegateImpl {
-        const delegate = <UITableViewDelegateImpl>UITableViewDelegateImpl.new();
-        delegate._owner = owner;
-        delegate._measureCellMap = new Map<string, ListViewCell>();
-        return delegate;
-    }
-
-    public tableViewWillDisplayCellForRowAtIndexPath(tableView: UITableView, cell: UITableViewCell, indexPath: NSIndexPath) {
-        const owner = this._owner.get();
-        if (owner && (indexPath.row === owner.items.length - 1)) {
-            owner.notify(<EventData>{ eventName: LOADMOREITEMS, object: owner });
-        }
-    }
-
-    public tableViewWillSelectRowAtIndexPath(tableView: UITableView, indexPath: NSIndexPath): NSIndexPath {
-        const cell = <ListViewCell>tableView.cellForRowAtIndexPath(indexPath);
-        const owner = this._owner.get();
-        if (owner) {
-            notifyForItemAtIndex(owner, cell, cell.view, ITEMTAP, indexPath);
-        }
-        return indexPath;
-    }
-
-    public tableViewDidSelectRowAtIndexPath(tableView: UITableView, indexPath: NSIndexPath): NSIndexPath {
-        tableView.deselectRowAtIndexPathAnimated(indexPath, true);
-
-        return indexPath;
-    }
-
-    public tableViewHeightForRowAtIndexPath(tableView: UITableView, indexPath: NSIndexPath): number {
-        const owner = this._owner.get();
-        if (!owner) {
-            return tableView.estimatedRowHeight;
-        }
-
-        let height = owner.getHeight(indexPath.row);
-        if (height === undefined) {
-            // in iOS8+ after call to scrollToRowAtIndexPath:atScrollPosition:animated: this method is called before tableViewCellForRowAtIndexPath so we need fake cell to measure its content.
-            const template = owner._getItemTemplate(indexPath.row);
-            let cell = this._measureCellMap.get(template.key);
-            if (!cell) {
-                cell = (<any>tableView.dequeueReusableCellWithIdentifier(template.key)) || ListViewCell.initWithEmptyBackground();
-                this._measureCellMap.set(template.key, cell);
-            }
-
-            height = owner._prepareCell(cell, indexPath);
-        }
-
-        return layout.toDeviceIndependentPixels(height);
-    }
-}
-
-class UITableViewRowHeightDelegateImpl extends NSObject implements UITableViewDelegate {
-    public static ObjCProtocols = [UITableViewDelegate];
-
-    private _owner: WeakRef<ListView>;
-
-    public static initWithOwner(owner: WeakRef<ListView>): UITableViewRowHeightDelegateImpl {
-        let delegate = <UITableViewRowHeightDelegateImpl>UITableViewRowHeightDelegateImpl.new();
-        delegate._owner = owner;
-        return delegate;
-    }
-
-    public tableViewWillDisplayCellForRowAtIndexPath(tableView: UITableView, cell: UITableViewCell, indexPath: NSIndexPath) {
-        let owner = this._owner.get();
-        if (owner && (indexPath.row === owner.items.length - 1)) {
-            owner.notify(<EventData>{ eventName: LOADMOREITEMS, object: owner });
-        }
-    }
-
-    public tableViewWillSelectRowAtIndexPath(tableView: UITableView, indexPath: NSIndexPath): NSIndexPath {
-        let cell = <ListViewCell>tableView.cellForRowAtIndexPath(indexPath);
-        let owner = this._owner.get();
-        if (owner) {
-            notifyForItemAtIndex(owner, cell, cell.view, ITEMTAP, indexPath);
-        }
-        return indexPath;
-    }
-
-    public tableViewDidSelectRowAtIndexPath(tableView: UITableView, indexPath: NSIndexPath): NSIndexPath {
-        tableView.deselectRowAtIndexPathAnimated(indexPath, true);
-
-        return indexPath;
-    }
-
-    public tableViewHeightForRowAtIndexPath(tableView: UITableView, indexPath: NSIndexPath): number {
-        let owner = this._owner.get();
-        if (!owner) {
-            return tableView.estimatedRowHeight;
-        }
-
-        return layout.toDeviceIndependentPixels(owner._effectiveRowHeight);
-    }
+    ItemClickListener = ItemClickListenerImpl;
 }
 
 export class ListView extends ListViewBase {
-    public nativeViewProtected: UITableView;
-    private _dataSource;
-    private _delegate;
-    private _heights: Array<number>;
-    private _preparingCell: boolean;
-    private _isDataDirty: boolean;
-    private _map: Map<ListViewCell, ItemView>;
-    widthMeasureSpec: number = 0;
+    nativeViewProtected: NSListView;
+    private _webViewId: number = -1;
 
-    constructor() {
-        super();
-        this._map = new Map<ListViewCell, ItemView>();
-        this._heights = new Array<number>();
+    //public _realizedItems = new Map<android.view.View, View>();
+    //public _realizedTemplates = new Map<string, Map<android.view.View, View>>();
+
+    @profile
+    public createNativeView() {
+        const listView = document.createElement("ns-list-view");
+
+        //const listView = new android.widget.ListView(this._context);
+        //listView.setDescendantFocusability(android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS);
+        //
+        //// Fixes issue with black random black items when scrolling
+        //listView.setCacheColorHint(android.graphics.Color.TRANSPARENT);
+
+        return listView;
     }
 
-    createNativeView() {
-        return UITableView.new();
-    }
-
-    initNativeView() {
+    public initNativeView(): void {
         super.initNativeView();
+        //this.updateEffectiveRowHeight();
+
         const nativeView = this.nativeViewProtected;
-        nativeView.registerClassForCellReuseIdentifier(ListViewCell.class(), this._defaultTemplate.key);
-        nativeView.estimatedRowHeight = DEFAULT_HEIGHT;
-        nativeView.rowHeight = UITableViewAutomaticDimension;
-        nativeView.dataSource = this._dataSource = DataSource.initWithOwner(new WeakRef(this));
-        this._delegate = UITableViewDelegateImpl.initWithOwner(new WeakRef(this));
-        this._setNativeClipToBounds();
+        initializeItemClickListener();
+        //ensureListViewAdapterClass();
+        //const adapter = new ListViewAdapterClass(this);
+        //nativeView.setAdapter(adapter);
+        //(<any>nativeView).adapter = adapter;
+
+        const itemClickListener = new ItemClickListener(this);
+        nativeView.setOnItemClickListener(itemClickListener);
+        (<any>nativeView).itemClickListener = itemClickListener;
+
+        if (this._webViewId < 0) {
+            this._webViewId = WebApplication.generateViewId();
+        }
+        nativeView.setId(this._webViewId);
     }
 
-    disposeNativeView() {
-        this._delegate = null;
-        this._dataSource = null;
+    public disposeNativeView() {
+        const nativeView = this.nativeViewProtected;
+        //nativeView.setAdapter(null);
+        (<any>nativeView).itemClickListener.owner = null;
+        //(<any>nativeView).adapter.owner = null;
+        //this.clearRealizedCells();
         super.disposeNativeView();
     }
 
-    _setNativeClipToBounds() {
-        // Always set clipsToBounds for list-view
-        this.ios.clipsToBounds = true;
-    }
-
-    @profile
     public onLoaded() {
         super.onLoaded();
-        if (this._isDataDirty) {
-            this.refresh();
-        }
-        this.ios.delegate = this._delegate;
-    }
-
-    public onUnloaded() {
-        this.ios.delegate = null;
-        super.onUnloaded();
-    }
-
-    get ios(): UITableView {
-        return this.nativeViewProtected;
-    }
-
-    get _childrenCount(): number {
-        return this._map.size;
-    }
-
-    public eachChildView(callback: (child: View) => boolean): void {
-        this._map.forEach((view, key) => {
-            callback(view);
-        });
-    }
-
-    public scrollToIndex(index: number) {
-        this._scrollToIndex(index, false);
-    }
-
-    public scrollToIndexAnimated(index: number) {
-        this._scrollToIndex(index);
-    }
-
-    private _scrollToIndex(index: number, animated: boolean = true) {
-        if (!this.ios) {
-            return;
-        }
-
-        const itemsLength = this.items ? this.items.length : 0;
-        // mimic Android behavior that silently coerces index values within [0, itemsLength - 1] range
-        if (itemsLength > 0) {
-            if (index < 0) {
-                index = 0
-            } else if (index >= itemsLength) {
-                index = itemsLength - 1;
-            }
-
-            this.ios.scrollToRowAtIndexPathAtScrollPositionAnimated(NSIndexPath.indexPathForItemInSection(index, 0),
-                UITableViewScrollPosition.Top, animated);
-        } else if (trace.isEnabled()) {
-            trace.write(`Cannot scroll listview to index ${index} when listview items not set`, trace.categories.Binding);
-        }
+        // Without this call itemClick won't be fired... :(
+        this.requestLayout();
     }
 
     public refresh() {
+        const nativeView = this.nativeViewProtected;
+        //if (!nativeView || !nativeView.getAdapter()) {
+        //    return;
+        //}
+
         // clear bindingContext when it is not observable because otherwise bindings to items won't reevaluate
-        this._map.forEach((view, nativeView, map) => {
-            if (!(view.bindingContext instanceof Observable)) {
-                view.bindingContext = null;
-            }
-        });
+        //this._realizedItems.forEach((view, nativeView) => {
+        //    if (!(view.bindingContext instanceof Observable)) {
+        //        view.bindingContext = null;
+        //    }
+        //});
+        //
+        //(<android.widget.BaseAdapter>nativeView.getAdapter()).notifyDataSetChanged();
+    }
 
-        if (this.isLoaded) {
-            this.ios.reloadData();
-            this.requestLayout();
-            this._isDataDirty = false;
+    public scrollToIndex(index: number) {
+        const nativeView = this.nativeViewProtected;
+        if (nativeView) {
+            nativeView.setSelection(index);
+        }
+    }
+
+    public scrollToIndexAnimated(index: number) {
+        const nativeView = this.nativeViewProtected;
+        if (nativeView) {
+            nativeView.smoothScrollToPosition(index);
+        }
+    }
+
+    get _childrenCount(): number {
+        return 10; //this._realizedItems.size;
+    }
+
+    public eachChildView(callback: (child: View) => boolean): void {
+        //this._realizedItems.forEach((view, nativeView) => {
+        //    if (view.parent instanceof ListView) {
+        //        callback(view);
+        //    }
+        //    else {
+        //        // in some cases (like item is unloaded from another place (like angular) view.parent becomes undefined)
+        //        if (view.parent) {
+        //            callback(<View>view.parent);
+        //        }
+        //    }
+        //});
+    }
+
+    public _dumpRealizedTemplates() {
+        console.log(`Realized Templates:`);
+        //this._realizedTemplates.forEach((value, index) => {
+        //    console.log(`\t${index}:`);
+        //    value.forEach((value, index) => {
+        //        console.log(`\t\t${index.hashCode()}: ${value}`);
+        //    });
+        //});
+        //console.log(`Realized Items Size: ${this._realizedItems.size}`);
+    }
+
+    private clearRealizedCells(): void {
+        // clear the cache
+        //this._realizedItems.forEach((view, nativeView) => {
+        //    if (view.parent) {
+        //        // This is to clear the StackLayout that is used to wrap non LayoutBase & ProxyViewContainer instances.
+        //        if (!(view.parent instanceof ListView)) {
+        //            this._removeView(view.parent);
+        //        }
+        //        view.parent._removeView(view);
+        //    }
+        //});
+        //
+        //this._realizedItems.clear();
+        //this._realizedTemplates.clear();
+    }
+
+    public isItemAtIndexVisible(index: number): boolean {
+        let nativeView = this.nativeViewProtected;
+        const start = nativeView.getFirstVisiblePosition();
+        const end =  nativeView.getLastVisiblePosition();
+        return ( index >= start && index <= end );
+    }
+
+    [separatorColorProperty.getDefault](): { dividerHeight: number, divider: android.graphics.drawable.Drawable } {
+        let nativeView = this.nativeViewProtected;
+        return {
+            dividerHeight: nativeView.getDividerHeight(),
+            divider: nativeView.getDivider()
+        };
+    }
+    [separatorColorProperty.setNative](value: Color | { dividerHeight: number, divider: android.graphics.drawable.Drawable }) {
+        let nativeView = this.nativeViewProtected;
+        if (value instanceof Color) {
+            nativeView.setDivider(new android.graphics.drawable.ColorDrawable(value.android));
+            nativeView.setDividerHeight(1);
         } else {
-            this._isDataDirty = true;
+            nativeView.setDivider(value.divider);
+            nativeView.setDividerHeight(value.dividerHeight);
         }
-    }
-
-    public isItemAtIndexVisible(itemIndex: number): boolean {
-        const indexes: NSIndexPath[] = Array.from(this.ios.indexPathsForVisibleRows);
-        return indexes.some(visIndex => visIndex.row === itemIndex);
-    }
-
-    public getHeight(index: number): number {
-        return this._heights[index];
-    }
-
-    public setHeight(index: number, value: number): void {
-        this._heights[index] = value;
-    }
-
-    public _onRowHeightPropertyChanged(oldValue: Length, newValue: Length) {
-        const value = layout.toDeviceIndependentPixels(this._effectiveRowHeight);
-        const nativeView = this.ios;
-        if (value < 0) {
-            nativeView.rowHeight = UITableViewAutomaticDimension;
-            nativeView.estimatedRowHeight = DEFAULT_HEIGHT;
-            this._delegate = UITableViewDelegateImpl.initWithOwner(new WeakRef(this));
-        }
-        else {
-            nativeView.rowHeight = value;
-            nativeView.estimatedRowHeight = value;
-            this._delegate = UITableViewRowHeightDelegateImpl.initWithOwner(new WeakRef(this));
-        }
-
-        if (this.isLoaded) {
-            nativeView.delegate = this._delegate;
-        }
-
-        super._onRowHeightPropertyChanged(oldValue, newValue);
-    }
-
-    public requestLayout(): void {
-        // When preparing cell don't call super - no need to invalidate our measure when cell desiredSize is changed.
-        if (!this._preparingCell) {
-            super.requestLayout();
-        }
-    }
-
-    public measure(widthMeasureSpec: number, heightMeasureSpec: number): void {
-        this.widthMeasureSpec = widthMeasureSpec;
-        var changed = this._setCurrentMeasureSpecs(widthMeasureSpec, heightMeasureSpec);
-        super.measure(widthMeasureSpec, heightMeasureSpec);
-        if (changed) {
-            this.ios.reloadData();
-        }
-    }
-
-    public onMeasure(widthMeasureSpec: number, heightMeasureSpec: number): void {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        this._map.forEach((childView, listViewCell) => {
-            View.measureChild(this, childView, childView._currentWidthMeasureSpec, childView._currentHeightMeasureSpec);
-        });
-    }
-
-    public onLayout(left: number, top: number, right: number, bottom: number): void {
-        super.onLayout(left, top, right, bottom);
-
-        this._map.forEach((childView, listViewCell) => {
-            let rowHeight = this._effectiveRowHeight;
-            let cellHeight = rowHeight > 0 ? rowHeight : this.getHeight(childView._listViewItemIndex);
-            if (cellHeight) {
-                let width = layout.getMeasureSpecSize(this.widthMeasureSpec);
-                View.layoutChild(this, childView, 0, 0, width, cellHeight);
-            }
-        });
-    }
-
-    private _layoutCell(cellView: View, indexPath: NSIndexPath): number {
-        if (cellView) {
-            const rowHeight = this._effectiveRowHeight;
-            const heightMeasureSpec: number = rowHeight >= 0 ? layout.makeMeasureSpec(rowHeight, layout.EXACTLY) : infinity;
-            const measuredSize = View.measureChild(this, cellView, this.widthMeasureSpec, heightMeasureSpec);
-            const height = measuredSize.measuredHeight;
-            this.setHeight(indexPath.row, height);
-            return height;
-        }
-
-        return this.ios.estimatedRowHeight;
-    }
-
-    public _prepareCell(cell: ListViewCell, indexPath: NSIndexPath): number {
-        let cellHeight: number;
-        try {
-            this._preparingCell = true;
-            let view: ItemView = cell.view;
-            if (!view) {
-                view = this._getItemTemplate(indexPath.row).createView();
-            }
-
-            let args = notifyForItemAtIndex(this, cell, view, ITEMLOADING, indexPath);
-            view = args.view || this._getDefaultItemContent(indexPath.row);
-
-            // Proxy containers should not get treated as layouts.
-            // Wrap them in a real layout as well.
-            if (view instanceof ProxyViewContainer) {
-                let sp = new StackLayout();
-                sp.addChild(view);
-                view = sp;
-            }
-
-            // If cell is reused it have old content - remove it first.
-            if (!cell.view) {
-                cell.owner = new WeakRef(view);
-            } else if (cell.view !== view) {
-                this._removeContainer(cell);
-                (<UIView>cell.view.nativeViewProtected).removeFromSuperview();
-                cell.owner = new WeakRef(view);
-            }
-
-            this._prepareItem(view, indexPath.row);
-            view._listViewItemIndex = indexPath.row;
-            this._map.set(cell, view);
-
-            // We expect that views returned from itemLoading are new (e.g. not reused).
-            if (view && !view.parent) {
-                this._addView(view);
-                cell.contentView.addSubview(view.nativeViewProtected);
-            }
-
-            cellHeight = this._layoutCell(view, indexPath);
-        } finally {
-            this._preparingCell = false;
-        }
-        return cellHeight;
-    }
-
-    public _removeContainer(cell: ListViewCell): void {
-        let view: ItemView = cell.view;
-        // This is to clear the StackLayout that is used to wrap ProxyViewContainer instances.
-        if (!(view.parent instanceof ListView)) {
-            this._removeView(view.parent);
-        }
-
-        // No need to request layout when we are removing cells.
-        const preparing = this._preparingCell;
-        this._preparingCell = true;
-        view.parent._removeView(view);
-        view._listViewItemIndex = undefined;
-        this._preparingCell = preparing;
-        this._map.delete(cell);
-    }
-
-    [separatorColorProperty.getDefault](): UIColor {
-        return this.ios.separatorColor;
-    }
-    [separatorColorProperty.setNative](value: Color | UIColor) {
-        this.ios.separatorColor = value instanceof Color ? value.ios : value;
     }
 
     [itemTemplatesProperty.getDefault](): KeyedTemplate[] {
@@ -482,21 +200,140 @@ export class ListView extends ListViewBase {
     [itemTemplatesProperty.setNative](value: KeyedTemplate[]) {
         this._itemTemplatesInternal = new Array<KeyedTemplate>(this._defaultTemplate);
         if (value) {
-            for (let i = 0, length = value.length; i < length; i++) {
-                this.ios.registerClassForCellReuseIdentifier(ListViewCell.class(), value[i].key);
-            }
             this._itemTemplatesInternal = this._itemTemplatesInternal.concat(value);
         }
 
+        //this.nativeViewProtected.setAdapter(new ListViewAdapterClass(this));
         this.refresh();
     }
-
-    [iosEstimatedRowHeightProperty.getDefault](): Length {
-        return DEFAULT_HEIGHT;
-    }
-    [iosEstimatedRowHeightProperty.setNative](value: Length) {
-        const nativeView = this.ios;
-        const estimatedHeight = Length.toDevicePixels(value, 0);
-        nativeView.estimatedRowHeight = estimatedHeight < 0 ? DEFAULT_HEIGHT : estimatedHeight;
-    }
 }
+
+/*
+let ListViewAdapterClass;
+function ensureListViewAdapterClass() {
+    if (ListViewAdapterClass) {
+        return;
+    }
+
+    class ListViewAdapter extends android.widget.BaseAdapter {
+        constructor(public owner: ListView) {
+            super();
+            return global.__native(this);
+        }
+
+        public getCount() {
+            return this.owner && this.owner.items && this.owner.items.length ? this.owner.items.length : 0;
+        }
+
+        public getItem(i: number) {
+            if (this.owner && this.owner.items && i < this.owner.items.length) {
+                let getItem = (<ItemsSource>this.owner.items).getItem;
+                return getItem ? getItem.call(this.owner.items, i) : this.owner.items[i];
+            }
+
+            return null;
+        }
+
+        public getItemId(i: number) {
+            let item = this.getItem(i);
+            let id = i;
+            if (this.owner && item && this.owner.items) {
+                id = this.owner.itemIdGenerator(item, i, this.owner.items);
+            }
+            return long(id);
+        }
+
+        public hasStableIds(): boolean {
+            return true;
+        }
+
+        public getViewTypeCount() {
+            return this.owner._itemTemplatesInternal.length;
+        }
+
+        public getItemViewType(index: number) {
+            let template = this.owner._getItemTemplate(index);
+            let itemViewType = this.owner._itemTemplatesInternal.indexOf(template);
+            return itemViewType;
+        }
+
+        @profile
+        public getView(index: number, convertView: android.view.View, parent: android.view.ViewGroup): android.view.View {
+            //this.owner._dumpRealizedTemplates();
+
+            if (!this.owner) {
+                return null;
+            }
+
+            let totalItemCount = this.owner.items ? this.owner.items.length : 0;
+            if (index === (totalItemCount - 1)) {
+                this.owner.notify({ eventName: LOADMOREITEMS, object: this.owner });
+            }
+
+            // Recycle an existing view or create a new one if needed.
+            let template = this.owner._getItemTemplate(index);
+            let view: View;
+            if (convertView) {
+                view = this.owner._realizedTemplates.get(template.key).get(convertView);
+                if (!view) {
+                    throw new Error(`There is no entry with key '${convertView}' in the realized views cache for template with key'${template.key}'.`);
+                }
+            }
+            else {
+                view = template.createView();
+            }
+
+            let args: ItemEventData = {
+                eventName: ITEMLOADING, object: this.owner, index: index, view: view,
+                android: parent,
+                ios: undefined
+            };
+
+            this.owner.notify(args);
+
+            if (!args.view) {
+                args.view = this.owner._getDefaultItemContent(index);
+            }
+
+            if (args.view) {
+                if (this.owner._effectiveRowHeight > -1) {
+                    args.view.height = this.owner.rowHeight;
+                }
+                else {
+                    args.view.height = <Length>unsetValue;
+                }
+
+                this.owner._prepareItem(args.view, index);
+                if (!args.view.parent) {
+                    // Proxy containers should not get treated as layouts.
+                    // Wrap them in a real layout as well.
+                    if (args.view instanceof LayoutBase &&
+                        !(args.view instanceof ProxyViewContainer)) {
+                        this.owner._addView(args.view);
+                        convertView = args.view.nativeViewProtected;
+                    } else {
+                        let sp = new StackLayout();
+                        sp.addChild(args.view);
+                        this.owner._addView(sp);
+
+                        convertView = sp.nativeViewProtected;
+                    }
+                }
+
+                // Cache the view for recycling
+                let realizedItemsForTemplateKey = this.owner._realizedTemplates.get(template.key);
+                if (!realizedItemsForTemplateKey) {
+                    realizedItemsForTemplateKey = new Map<android.view.View, View>();
+                    this.owner._realizedTemplates.set(template.key, realizedItemsForTemplateKey);
+                }
+                realizedItemsForTemplateKey.set(convertView, args.view);
+                this.owner._realizedItems.set(convertView, args.view);
+            }
+
+            return convertView;
+        }
+    }
+
+    ListViewAdapterClass = ListViewAdapter;
+}
+*/
