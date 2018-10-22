@@ -9,6 +9,7 @@ import { LayoutBase } from "../layouts/layout-base";
 import { profile } from "../../profiling";
 import { WebApplication } from "../../application";
 
+import NSElement from "../../../hypers/ns-element";
 import NSListView from "../../../hypers/ns-list-view";
 
 export * from "./list-view-common";
@@ -42,49 +43,44 @@ export class ListView extends ListViewBase {
     nativeViewProtected: NSListView;
     private _webViewId: number = -1;
 
-    //public _realizedItems = new Map<android.view.View, View>();
-    //public _realizedTemplates = new Map<string, Map<android.view.View, View>>();
+    public _realizedItems = new Map<NSElement, View>();
+    public _realizedTemplates = new Map<string, Map<NSElement, View>>();
 
     @profile
     public createNativeView() {
-        const listView = document.createElement("ns-list-view");
-
-        //const listView = new android.widget.ListView(this._context);
-        //listView.setDescendantFocusability(android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS);
-        //
-        //// Fixes issue with black random black items when scrolling
-        //listView.setCacheColorHint(android.graphics.Color.TRANSPARENT);
-
-        return listView;
+        return document.createElement("ns-list-view");
     }
 
     public initNativeView(): void {
         super.initNativeView();
-        //this.updateEffectiveRowHeight();
+        this.updateEffectiveRowHeight();
 
         const nativeView = this.nativeViewProtected;
         initializeItemClickListener();
-        //ensureListViewAdapterClass();
-        //const adapter = new ListViewAdapterClass(this);
+        ensureListViewAdapterClass();
+        const adapter = new ListViewAdapterClass(this);
         //nativeView.setAdapter(adapter);
-        //(<any>nativeView).adapter = adapter;
+        (<any>nativeView).adapter = adapter;
+
+        nativeView.template = this.itemTemplate;
 
         const itemClickListener = new ItemClickListener(this);
-        nativeView.setOnItemClickListener(itemClickListener);
-        (<any>nativeView).itemClickListener = itemClickListener;
+        //nativeView.setOnItemClickListener(itemClickListener);
+        (<any>nativeView).onclick = itemClickListener;
 
         if (this._webViewId < 0) {
             this._webViewId = WebApplication.generateViewId();
         }
-        nativeView.setId(this._webViewId);
+        //nativeView.setId(this._webViewId);
     }
 
     public disposeNativeView() {
         const nativeView = this.nativeViewProtected;
         //nativeView.setAdapter(null);
-        (<any>nativeView).itemClickListener.owner = null;
+        (<any>nativeView).onclick = null;
         //(<any>nativeView).adapter.owner = null;
-        //this.clearRealizedCells();
+        (<any>nativeView).adapter = null;
+        this.clearRealizedCells();
         super.disposeNativeView();
     }
 
@@ -96,18 +92,18 @@ export class ListView extends ListViewBase {
 
     public refresh() {
         const nativeView = this.nativeViewProtected;
-        //if (!nativeView || !nativeView.getAdapter()) {
-        //    return;
-        //}
+        if (!nativeView || !nativeView.adapter) {
+            return;
+        }
 
         // clear bindingContext when it is not observable because otherwise bindings to items won't reevaluate
-        //this._realizedItems.forEach((view, nativeView) => {
-        //    if (!(view.bindingContext instanceof Observable)) {
-        //        view.bindingContext = null;
-        //    }
-        //});
-        //
-        //(<android.widget.BaseAdapter>nativeView.getAdapter()).notifyDataSetChanged();
+        this._realizedItems.forEach((view, nativeView) => {
+            if (!(view.bindingContext instanceof Observable)) {
+                view.bindingContext = null;
+            }
+        });
+
+        //nativeView.adapter.notifyDataSetChanged();
     }
 
     public scrollToIndex(index: number) {
@@ -125,48 +121,48 @@ export class ListView extends ListViewBase {
     }
 
     get _childrenCount(): number {
-        return 10; //this._realizedItems.size;
+        return this._realizedItems.size;
     }
 
     public eachChildView(callback: (child: View) => boolean): void {
-        //this._realizedItems.forEach((view, nativeView) => {
-        //    if (view.parent instanceof ListView) {
-        //        callback(view);
-        //    }
-        //    else {
-        //        // in some cases (like item is unloaded from another place (like angular) view.parent becomes undefined)
-        //        if (view.parent) {
-        //            callback(<View>view.parent);
-        //        }
-        //    }
-        //});
+        this._realizedItems.forEach((view, nativeView) => {
+            if (view.parent instanceof ListView) {
+                callback(view);
+            }
+            else {
+                // in some cases (like item is unloaded from another place (like angular) view.parent becomes undefined)
+                if (view.parent) {
+                    callback(<View>view.parent);
+                }
+            }
+        });
     }
 
     public _dumpRealizedTemplates() {
         console.log(`Realized Templates:`);
-        //this._realizedTemplates.forEach((value, index) => {
-        //    console.log(`\t${index}:`);
-        //    value.forEach((value, index) => {
-        //        console.log(`\t\t${index.hashCode()}: ${value}`);
-        //    });
-        //});
-        //console.log(`Realized Items Size: ${this._realizedItems.size}`);
+        this._realizedTemplates.forEach((value, index) => {
+            console.log(`\t${index}:`);
+            value.forEach((value, index) => {
+                console.log(`\t\t${index.hashCode()}: ${value}`);
+            });
+        });
+        console.log(`Realized Items Size: ${this._realizedItems.size}`);
     }
 
     private clearRealizedCells(): void {
         // clear the cache
-        //this._realizedItems.forEach((view, nativeView) => {
-        //    if (view.parent) {
-        //        // This is to clear the StackLayout that is used to wrap non LayoutBase & ProxyViewContainer instances.
-        //        if (!(view.parent instanceof ListView)) {
-        //            this._removeView(view.parent);
-        //        }
-        //        view.parent._removeView(view);
-        //    }
-        //});
-        //
-        //this._realizedItems.clear();
-        //this._realizedTemplates.clear();
+        this._realizedItems.forEach((view, nativeView) => {
+            if (view.parent) {
+                // This is to clear the StackLayout that is used to wrap non LayoutBase & ProxyViewContainer instances.
+                if (!(view.parent instanceof ListView)) {
+                    this._removeView(view.parent);
+                }
+                view.parent._removeView(view);
+            }
+        });
+
+        this._realizedItems.clear();
+        this._realizedTemplates.clear();
     }
 
     public isItemAtIndexVisible(index: number): boolean {
@@ -203,23 +199,19 @@ export class ListView extends ListViewBase {
             this._itemTemplatesInternal = this._itemTemplatesInternal.concat(value);
         }
 
-        //this.nativeViewProtected.setAdapter(new ListViewAdapterClass(this));
+        this.nativeViewProtected.adapter = new ListViewAdapterClass(this);
         this.refresh();
     }
 }
 
-/*
 let ListViewAdapterClass;
 function ensureListViewAdapterClass() {
     if (ListViewAdapterClass) {
         return;
     }
 
-    class ListViewAdapter extends android.widget.BaseAdapter {
-        constructor(public owner: ListView) {
-            super();
-            return global.__native(this);
-        }
+    class ListViewAdapter {
+        constructor(public owner: ListView) {}
 
         public getCount() {
             return this.owner && this.owner.items && this.owner.items.length ? this.owner.items.length : 0;
@@ -258,7 +250,7 @@ function ensureListViewAdapterClass() {
         }
 
         @profile
-        public getView(index: number, convertView: android.view.View, parent: android.view.ViewGroup): android.view.View {
+        public getView(index: number, convertView: any, parent: any): any {
             //this.owner._dumpRealizedTemplates();
 
             if (!this.owner) {
@@ -323,7 +315,7 @@ function ensureListViewAdapterClass() {
                 // Cache the view for recycling
                 let realizedItemsForTemplateKey = this.owner._realizedTemplates.get(template.key);
                 if (!realizedItemsForTemplateKey) {
-                    realizedItemsForTemplateKey = new Map<android.view.View, View>();
+                    realizedItemsForTemplateKey = new Map<NSElement, View>();
                     this.owner._realizedTemplates.set(template.key, realizedItemsForTemplateKey);
                 }
                 realizedItemsForTemplateKey.set(convertView, args.view);
@@ -336,4 +328,3 @@ function ensureListViewAdapterClass() {
 
     ListViewAdapterClass = ListViewAdapter;
 }
-*/

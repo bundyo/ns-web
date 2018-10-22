@@ -1,6 +1,10 @@
 <StackLayout xmlns="http://schemas.nativescript.org/tns.xsd" loaded="loaded">
-    <ListView>
-        <Label text="{{ title }}" class="detail-title"/>
-        <Label text="{{ info }}" class="info" textWrap="true"/>
+    <ListView items="{{ items }}">
+        <ListView.itemTemplate>
+            <StackLayout>
+                <Label text="{{ title }}" class="detail-title"/>
+                <Label text="{{ info }}" class="info" textWrap="true"/>
+            </StackLayout>
+        </ListView.itemTemplate>
     </ListView>
 </StackLayout>

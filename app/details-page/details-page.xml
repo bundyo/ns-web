@@ -5,5 +5,5 @@
         <ActionItem web.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
     </ActionBar>
 
-    <app:details-view title="{{ title }}" info="{{ info }}"/>
+    <app:details-view items="{{ items }}"/>
 </Page>

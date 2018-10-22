@@ -4,8 +4,6 @@ var vmModule = require("./main-view-model");
 var twoPaneLayout = Math.min(platform.screen.mainScreen.widthDIPs, platform.screen.mainScreen.heightDIPs) > 600;
 
 vmModule.mainViewModel.set("message", "test");
-vmModule.mainViewModel.set("title", "Custom Component Title");
-vmModule.mainViewModel.set("info", "Custom Component Info");
 vmModule.mainViewModel.set("goBack", function () {
     frames.topmost().goBack();
 });
