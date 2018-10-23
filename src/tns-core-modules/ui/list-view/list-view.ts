@@ -94,13 +94,6 @@ export class ListView extends ListViewBase {
     public onLoaded() {
         super.onLoaded();
         // Without this call itemClick won't be fired... :(
-
-        setTimeout(() => {
-            (<any>this.items).forEach((v, i) => {
-                this.nativeView.append(this.nativeViewProtected.adapter.getView(i));
-            });
-        });
-
         this.requestLayout();
     }
 
@@ -117,7 +110,9 @@ export class ListView extends ListViewBase {
             }
         });
 
-        //nativeView.adapter.notifyDataSetChanged();
+        (<any>this.items).forEach((v, i) => {
+            this.nativeView.append(this.nativeViewProtected.adapter.getView(i));
+        });
     }
 
     public scrollToIndex(index: number) {
