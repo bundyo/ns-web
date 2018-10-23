@@ -1,0 +1,11 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatedTo="pageNavigatedTo">
+    <ActionBar title="Details">
+        <ActionItem web.position="left" class="btn" tap="{{ goBack }}" text="Back"/>
+    </ActionBar>
+
+    <StackLayout>
+        <Label text="{{ selectedItem.title }}" class="detail-title"/>
+        <Label text="{{ selectedItem.info }}" class="info" textWrap="true"/>
+    </StackLayout>
+</Page>

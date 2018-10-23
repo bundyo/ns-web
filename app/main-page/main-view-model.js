@@ -9,7 +9,7 @@ var ViewModelItem = (function () {
 }());
 exports.ViewModelItem = ViewModelItem;
 var items = new observableArray.ObservableArray();
-for (var i = 0; i < 20; i++) {
+for (var i = 0; i < 100; i++) {
     items.push(new ViewModelItem("Item " + i, "This is the item with number " + i + "."));
 }
 exports.mainViewModel = new observable.Observable();
