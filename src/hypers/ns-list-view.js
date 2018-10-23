@@ -11,8 +11,6 @@ export default class NSListView extends NSElement {
     }
 
     render() {
-        const something = this.adapter.getView(0);
-
         return this.html;
     }
 

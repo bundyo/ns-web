@@ -19,6 +19,7 @@ exports.pageLoaded = pageLoaded;
 
 function showSlideout() {
     vmModule.mainViewModel.items.setItem(2, { title: "title", info: "info" });
+    vmModule.mainViewModel.items.setItem(5, { title: "title 2", info: "info 2" });
     frames.topmost().navigate("details-page/details-page");
 }
 exports.showSlideout = showSlideout;
@@ -28,9 +29,10 @@ exports.showButtons = function () {
 };
 
 function listViewItemTap(args) {
-    if (!twoPaneLayout) {
-        frames.topmost().navigate("details-page/details-page");
-    }
+//    if (!twoPaneLayout) {
+        frames.topmost().navigate("details-page/details-2");
+//    }
     vmModule.mainViewModel.set("selectedItem", args.view.bindingContext);
 }
+vmModule.mainViewModel.listViewItemTap = listViewItemTap;
 exports.listViewItemTap = listViewItemTap;

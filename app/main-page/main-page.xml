@@ -2,7 +2,7 @@
       loaded="pageLoaded">
     <ActionBar class="action-bar" title="ActionBar">
         <ActionItem android.position="left" class="btn" tap="showButtons" text="Buttons"/>
-        <ActionItem android.position="right" class="btn" tap="showSlideout" text="Details"/>
+        <ActionItem android.position="right" class="btn" tap="showSlideout" text="ListView"/>
     </ActionBar>
     <ScrollView>
         <GridLayout rows="auto, auto, auto, auto, auto, auto" columns="100, *, 100">
