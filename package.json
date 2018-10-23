@@ -21,7 +21,6 @@
     "@angular/platform-browser": "~6.1.0",
     "@angular/platform-browser-dynamic": "~6.1.0",
     "@angular/router": "~6.1.0",
-    "nativescript-angular": "~6.2.0-2018-10-09-150701-01",
     "reflect-metadata": "~0.1.8",
     "rxjs": "~6.2.0",
     "zone.js": "^0.8.26",

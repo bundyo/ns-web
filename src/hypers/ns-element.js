@@ -23,8 +23,6 @@ export default class NSElement extends HyperHTMLElement {
         //this.key = 'value';
         this.uId = this.uniqId();
 
-        this.classList.add(`-${this.uId}`);
-
         this.render();
     }
 
@@ -43,6 +41,8 @@ export default class NSElement extends HyperHTMLElement {
         // which could be the element shadowRoot or the element itself.
         // All events can be handled directly by the context, thanks to handleEvent
         // https://medium.com/@WebReflection/dom-handleevent-a-cross-platform-standard-since-year-2000-5bf17287fd38
+        this.classList.add(`-${this.uId}`);
+
         return this.html;
     }
 
@@ -79,7 +79,9 @@ export default class NSElement extends HyperHTMLElement {
                 : v.nodeValue);
         });
 
-        return { styles };
+        return {
+            styles
+        };
     }
 
     uniqId() {

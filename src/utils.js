@@ -2,6 +2,10 @@ const dashRegExp = /-(.)/g,
     dashCapitalRegExp = /([a-z\d])([A-Z])/g;
 
 export function matches(element, query) {
+    if (!element) {
+        return true;
+    }
+
     const matches = (element.matches || element.webkitMatchesSelector || element.msMatchesSelector);
 
     return matches ? matches.call(element, query) : true;

@@ -38,7 +38,7 @@ function initializeItemClickListener(): void {
             const child = utils.childOf(event.target, "ns-list-view");
             const index = utils.index(child);
 
-            if (this.owner) {
+            if (this.owner && this.owner._realizedTemplates.size > 0) {
                 const view = this.owner._realizedTemplates.get(this.owner._getItemTemplate(index).key).get(child);
 
                 this.owner.notify({eventName: ITEMTAP, object: this.owner, index: index, view: view});
@@ -95,6 +95,8 @@ export class ListView extends ListViewBase {
         super.onLoaded();
         // Without this call itemClick won't be fired... :(
         this.requestLayout();
+
+        this.refresh();
     }
 
     public refresh() {
