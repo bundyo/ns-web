@@ -12,6 +12,8 @@ import { WebApplication } from "../../application";
 import NSElement from "../../../hypers/ns-element";
 import NSListView from "../../../hypers/ns-list-view";
 
+import * as utils from "../../../utils";
+
 export * from "./list-view-common";
 
 const ITEMLOADING = ListViewBase.itemLoadingEvent;
@@ -26,18 +28,27 @@ function initializeItemClickListener(): void {
     }
 
     class ItemClickListenerImpl {
-        constructor(public owner: ListView) {
+        private owner: any;
+
+        constructor(owner) {
+            this.owner = owner;
         }
 
-        onItemClick(parent, convertView, index: number, id: number) {
-            const owner = this.owner;
-            //const view = owner._realizedTemplates.get(owner._getItemTemplate(index).key).get(convertView);
-            owner.notify({ eventName: ITEMTAP, object: owner, index: index, view: view });
+        public onItemClick(event) {
+            const child = utils.childOf(event.target, "ns-list-view");
+            const index = utils.index(child);
+
+            if (this.owner) {
+                const view = this.owner._realizedTemplates.get(this.owner._getItemTemplate(index).key).get(child);
+
+                this.owner.notify({eventName: ITEMTAP, object: this.owner, index: index, view: view});
+            }
         }
     }
 
     ItemClickListener = ItemClickListenerImpl;
 }
+
 
 export class ListView extends ListViewBase {
     nativeViewProtected: NSListView;
@@ -56,30 +67,26 @@ export class ListView extends ListViewBase {
         this.updateEffectiveRowHeight();
 
         const nativeView = this.nativeViewProtected;
+
         initializeItemClickListener();
         ensureListViewAdapterClass();
-        const adapter = new ListViewAdapterClass(this);
-        //nativeView.setAdapter(adapter);
-        (<any>nativeView).adapter = adapter;
 
-        nativeView.template = this.itemTemplate;
+        nativeView.adapter = new ListViewAdapterClass(this);
 
         const itemClickListener = new ItemClickListener(this);
-        //nativeView.setOnItemClickListener(itemClickListener);
-        (<any>nativeView).onclick = itemClickListener;
+        nativeView.onclick = itemClickListener.onItemClick.bind(itemClickListener);
 
         if (this._webViewId < 0) {
             this._webViewId = WebApplication.generateViewId();
         }
-        //nativeView.setId(this._webViewId);
     }
 
     public disposeNativeView() {
         const nativeView = this.nativeViewProtected;
         //nativeView.setAdapter(null);
-        (<any>nativeView).onclick = null;
+        nativeView.onclick = null;
         //(<any>nativeView).adapter.owner = null;
-        (<any>nativeView).adapter = null;
+        nativeView.adapter = null;
         this.clearRealizedCells();
         super.disposeNativeView();
     }
@@ -87,6 +94,13 @@ export class ListView extends ListViewBase {
     public onLoaded() {
         super.onLoaded();
         // Without this call itemClick won't be fired... :(
+
+        setTimeout(() => {
+            (<any>this.items).forEach((v, i) => {
+                this.nativeView.append(this.nativeViewProtected.adapter.getView(i));
+            });
+        });
+
         this.requestLayout();
     }
 
@@ -277,6 +291,7 @@ function ensureListViewAdapterClass() {
 
             let args: ItemEventData = {
                 eventName: ITEMLOADING, object: this.owner, index: index, view: view,
+                web: parent,
                 android: parent,
                 ios: undefined
             };
