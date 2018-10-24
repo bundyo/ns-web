@@ -21,26 +21,36 @@ export default class NSGridLayout extends NSElement {
     }
 
     calculateLayout() {
-        const cols = this.columns ? this.columns.split(columnRegExp) : [],
-              colCount = cols.length + 1;
+        if (!this.columns) {
+            return;
+        }
 
-        let scoped = "";
+        let cols = this.columns ? this.columns.split(columnRegExp) : [],
+            scoped = "";
 
-        cols.forEach((value, index) => {
+        const colCount = cols.length + 1;
+
+        cols = cols.map((value) => {
             value = value.trim();
 
             if (value === "*") {
-                cols[index] = "calc(100% - " + cols.reduce((a, b) =>
-                    parseInt("0" + a, 10) + parseInt("0" + b, 10), 0) + "px)";
+                const colWidth = cols.reduce((a, b) =>
+                                    parseInt("0" + a, 10) + parseInt("0" + b, 10), 0);
+
+                return colWidth ? "0 " + colWidth + "px" : "1fr";
             } else {
-                cols[index] = value + "px";
+                return value + (value !== "auto" ? "px" : "");
             }
         });
 
         cols.forEach((value, index) => {
             value = value.trim();
 
-            scoped += "[col=\"" + index + "\"] { flex: 0 " + value + "; }\n";
+            if (index === 0) {
+                scoped += "> * { flex: " + value + "; }\n";
+            }
+
+            scoped += "[col=\"" + index + "\"] { flex: " + value + "; }\n";
         });
 
         for (let i = 1; i < colCount; i++) {

@@ -33,6 +33,9 @@ export default class NSElement extends HyperHTMLElement {
         //this.getAttribute('key') === this.key; // always true
         Object.assign(this.style, this.state.styles);
 
+        this.classList.add(`-${this.uId}`);
+        this.classList.add("ns-element");
+
         this.render();
     }
 
@@ -41,7 +44,6 @@ export default class NSElement extends HyperHTMLElement {
         // which could be the element shadowRoot or the element itself.
         // All events can be handled directly by the context, thanks to handleEvent
         // https://medium.com/@WebReflection/dom-handleevent-a-cross-platform-standard-since-year-2000-5bf17287fd38
-        this.classList.add(`-${this.uId}`);
 
         return this.html;
     }

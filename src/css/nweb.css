@@ -5,7 +5,7 @@ html, body {
     overflow: hidden;
 }
 
-ns-element {
+.ns-element {
     box-sizing: border-box;
 }
 
@@ -52,10 +52,13 @@ ns-stack-layout [verticalAlignment="stretch"] {
     align-self: stretch;
 }
 
-ns-grid-layout,
 ns-wrap-layout {
     display: flex;
     flex-wrap: wrap;
+}
+
+ns-grid-layout {
+    display: grid;
 }
 
 html ns-grid-layout > * {
@@ -95,6 +98,23 @@ ns-navigation-button {
 
 ns-label {
     display: block;
+}
+
+ns-image > img {
+    height: 100%;
+    width: 100%;
+}
+
+ns-image > img[stretch=fill] {
+    object-fit: fill;
+}
+
+ns-image > img[stretch=aspectFit] {
+    object-fit: contain;
+}
+
+ns-image > img[stretch=aspectFill] {
+    object-fit: cover;
 }
 
 ns-android,

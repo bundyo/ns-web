@@ -53,6 +53,12 @@ export * from "./view-common";
 export class View extends ViewCommon {
     nativeViewProtected: any;
 
+    onLoaded() {
+        super.onLoaded();
+
+        this.nativeViewProtected.className = this.className;
+    }
+
     public layoutNativeView(left: number, top: number, right: number, bottom: number): void {
         const view = this.nativeViewProtected;
 
@@ -119,6 +125,13 @@ export class View extends ViewCommon {
         }
 
         return false;
+    }
+
+    public _onCssStateChange() {
+        if (this.nativeViewProtected) {
+            console.log("class change");
+            this.nativeViewProtected.className = this.className;
+        }
     }
 
     [isEnabledProperty.setNative](value: boolean) {
