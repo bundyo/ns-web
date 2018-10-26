@@ -59,7 +59,7 @@ export class ActionItem extends ActionItemBase {
         return this._web;
     }
     public set web(value: Object) {
-        throw new Error("ActionItem.settings is read-only");
+        this._web = value;
     }
 
     public _getItemId() {
@@ -97,8 +97,7 @@ export class WebActionBarSettings {
     }
 }
 
-export class NavigationButton extends ActionItem {
-}
+export class NavigationButton extends ActionItem {}
 
 export class ActionBar extends ActionBarBase {
     private _web: WebActionBarSettings;
@@ -166,7 +165,7 @@ export class ActionBar extends ActionBarBase {
     public _updateNavigationButton() {
         const navButton = this.navigationButton;
         if (navButton && isVisible(navButton)) {
-            const systemIcon = navButton["web"].systemIcon;
+            //const systemIcon = navButton["web"].systemIcon;
             // if (systemIcon !== undefined) {
             //     // Try to look in the system resources.
             //     const systemResourceId = getSystemResourceId(systemIcon);
@@ -180,15 +179,16 @@ export class ActionBar extends ActionBarBase {
             // }
 
             // Set navigation content descripion, used by screen readers for the vision-impaired users
+            navButton.nativeViewProtected.position = "left";
             navButton.nativeViewProtected.text = navButton.text || null;
 
-            let navBtn = new WeakRef(navButton);
             this.nativeViewProtected.onclick = function (v) {
-                let owner = navBtn.get();
-                if (owner) {
-                    owner._raiseTap();
+                if (navButton) {
+                    navButton._raiseTap();
                 }
             };
+
+            this.nativeViewProtected.append(navButton.nativeViewProtected);
         }
         else {
             //this.nativeViewProtected.setNavigationIcon(null);

@@ -244,6 +244,7 @@ export class ActionItemBase extends ViewBase implements ActionItemDefinition {
     private _actionBar: ActionBarDefinition;
     private _actionView: View;
 
+    public web;
     public ios: IOSActionItemSettings;
     public android: AndroidActionItemSettings;
 
