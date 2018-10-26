@@ -180,7 +180,7 @@ export class ActionBar extends ActionBarBase {
             // }
 
             // Set navigation content descripion, used by screen readers for the vision-impaired users
-            this.nativeViewProtected.text = navButton.text || null;
+            navButton.nativeViewProtected.text = navButton.text || null;
 
             let navBtn = new WeakRef(navButton);
             this.nativeViewProtected.onclick = function (v) {
@@ -237,7 +237,7 @@ export class ActionBar extends ActionBarBase {
     public _addActionItems() {
         let items = this.actionItems.getVisibleItems();
 
-        this.nativeViewProtected.innerHTML = "";
+        //this.nativeViewProtected.innerHTML = "";
 
         for (let i = 0; i < items.length; i++) {
             let item = <ActionItem>items[i];
