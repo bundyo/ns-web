@@ -14,12 +14,14 @@ import {
     FormattedString, Span, Color, isBold
 } from "./text-base-common";
 
+import NSElement from "../../../hypers/ns-element";
+
 export * from "./text-base-common";
 
 export class TextBase extends TextBaseCommon {
 
-    public nativeViewProtected: HTMLElement;
-    public nativeTextViewProtected: HTMLElement;
+    public nativeViewProtected: NSElement;
+    public nativeTextViewProtected: NSElement;
 
     [textProperty.getDefault](): number | symbol {
         return this.nativeTextViewProtected["text"];
