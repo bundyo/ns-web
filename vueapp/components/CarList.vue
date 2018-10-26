@@ -18,7 +18,7 @@
 
                     <Label row="1" class="hr-light m-t-5 m-b-5" colSpan="2"/>
 
-                    <Image row="2" :src="item.imageUrl" stretch="aspectFill" height="120" class="m-r-20" loadMode="async"/>
+                    <Image row="2" :src="item.imageUrl" stretch="aspectFill" width="200" height="120" class="m-r-20" loadMode="async"/>
 
                     <StackLayout row="2" col="1" verticalAlignment="center" class="list-group-item-text">
                         <Label class="p-b-10">
