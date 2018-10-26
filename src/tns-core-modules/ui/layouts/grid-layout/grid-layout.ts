@@ -19,13 +19,6 @@ export class GridLayout extends GridLayoutBase {
     public initNativeView(): void {
         super.initNativeView();
 
-        const view = this.nativeViewProtected;
-
-        const rows = this.getRows();
-        const columns = this.getColumns();
-
-        this.gridLayout = [...Array(rows.length)].map(() => Array(columns.length));
-
         // Update native GridLayout
         this.rowsInternal.forEach((itemSpec: ItemSpec, index, rows) => { this._onRowAdded(itemSpec); }, this);
         this.columnsInternal.forEach((itemSpec: ItemSpec, index, rows) => { this._onColumnAdded(itemSpec); }, this);
@@ -33,23 +26,33 @@ export class GridLayout extends GridLayoutBase {
 
     onLoaded(): void {
         super.onLoaded();
+
+        this.nativeViewProtected.style["grid-template-areas"] = `"${this.gridLayout.map(_ => _.join(" ")).join('"\n"')}"`;
     }
 
-    _addView(view, atIndex?: number): void {
-        super._addView(view, atIndex);
+    _registerLayoutChild(view: View) {
+        super._registerLayoutChild(view);
 
-        setTimeout(() => {
-            view.nativeViewProtected.col = view.col;
-            view.nativeViewProtected.row = view.row;
+        view.once("loaded",() => {
+            const nv = view.nativeViewProtected;
+            const cellArea = `r${view.row}-c${view.col}`;
 
-            this.gridLayout[view.row][view.col] = `r${view.row}-c${view.col}`;
+            nv.col = view.col;
+            nv.row = view.row;
 
-            if (view.colSpan > 1) {
-                view.nativeViewProtected.colspan = view.colSpan;
+            view.colSpan > 1 && (nv.colspan = view.colSpan);
+            view.rowSpan > 1 && (nv.rowspan = view.rowSpan);
+
+            nv.style.gridArea = cellArea;
+
+            if (!this.gridLayout) {
+                this.gridLayout = [...Array(this.getRows().length)].map(() => Array(this.getColumns().length));
             }
 
-            if (view.rowSpan > 1) {
-                view.nativeViewProtected.rowspan = view.rowSpan;
+            for (let row = 0; row < view.rowSpan; row++) {
+                for (let col = 0; col < view.colSpan; col++) {
+                    this.gridLayout[view.row + row][view.col + col] = cellArea;
+                }
             }
         });
     }
@@ -77,7 +80,6 @@ Object.assign(View.prototype, {
     },
 
     [columnProperty.setNative](value: Length) {
-        console.log(value);
         this.nativeViewProtected.col = value;
     },
 
