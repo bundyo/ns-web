@@ -16,14 +16,6 @@ export class GridLayout extends GridLayoutBase {
         return document.createElement("ns-grid-layout");
     }
 
-    public initNativeView(): void {
-        super.initNativeView();
-
-        // Update native GridLayout
-        this.rowsInternal.forEach((itemSpec: ItemSpec, index, rows) => { this._onRowAdded(itemSpec); }, this);
-        this.columnsInternal.forEach((itemSpec: ItemSpec, index, rows) => { this._onColumnAdded(itemSpec); }, this);
-    }
-
     onLoaded(): void {
         super.onLoaded();
 
@@ -55,22 +47,6 @@ export class GridLayout extends GridLayoutBase {
                 }
             }
         });
-    }
-
-    set rows(value) {
-        super.rows = value;
-
-        if (this.nativeViewProtected) {
-            this.nativeViewProtected.rows = value;
-        }
-    }
-
-    set columns(value) {
-        super.columns = value;
-
-        if (this.nativeViewProtected) {
-            this.nativeViewProtected.columns = value;
-        }
     }
 }
 
