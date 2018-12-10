@@ -2,11 +2,11 @@ import NSElement from "./ns-element";
 
 export default class NSImage extends NSElement {
 
-    static get observedAttributes() { return ["src", "alt"].concat(super.observedAttributes); }
+    static get observedAttributes() { return ["src", "alt", "stretch"].concat(super.observedAttributes); }
 
     render() {
         return this.html`
-    <img src="${this.src}" alt="${this.alt}"/>`;
+    <img src="${this.src}" alt="${this.alt}" stretch="${this.stretch}"/>`;
     }
 }
 

@@ -5,7 +5,7 @@ html, body {
     overflow: hidden;
 }
 
-ns-element {
+.ns-element {
     box-sizing: border-box;
 }
 
@@ -52,10 +52,13 @@ ns-stack-layout [verticalAlignment="stretch"] {
     align-self: stretch;
 }
 
-ns-grid-layout,
 ns-wrap-layout {
     display: flex;
     flex-wrap: wrap;
+}
+
+ns-grid-layout {
+    display: grid;
 }
 
 html ns-grid-layout > * {
@@ -97,6 +100,23 @@ ns-label {
     display: block;
 }
 
+ns-image > img {
+    height: 100%;
+    width: 100%;
+}
+
+ns-image > img[stretch=fill] {
+    object-fit: fill;
+}
+
+ns-image > img[stretch=aspectFit] {
+    object-fit: contain;
+}
+
+ns-image > img[stretch=aspectFill] {
+    object-fit: cover;
+}
+
 ns-android,
 ns-ios {
     display: none;
@@ -122,6 +142,7 @@ ns-page {
 
 ns-page > * {
     order: 5;
+    flex: 1;
 }
 
 ns-page > ns-action-bar {
@@ -133,7 +154,7 @@ ns-page > ns-tab-view {
 }
 
 ns-action-bar {
-    flex: 0 1 3.4em;
+    flex: 0 0 50px;
     position: relative;
     display: flex;
     height: 100%;
@@ -143,6 +164,10 @@ ns-action-bar {
     align-items: center;
     align-content: center;
     box-shadow: 0 0 5px rgba(0, 0, 0, .4);
+}
+
+ns-tab-view {
+    flex: 0 0 50px;
 }
 
 ns-action-item {
@@ -182,6 +207,16 @@ ns-scroll-view {
     overflow-y: auto;
     flex: 1;
     -webkit-overflow-scrolling: touch;
+}
+
+ns-list-view {
+    overflow-y: auto;
+}
+
+ns-list-view > * {
+    cursor: pointer;
+    -moz-user-select: none;
+    -webkit-user-select: none;
 }
 
 .ns-action-bar__title {

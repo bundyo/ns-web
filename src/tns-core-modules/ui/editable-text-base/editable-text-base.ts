@@ -1,214 +1,449 @@
 ﻿import {
-    EditableTextBase as EditableTextBaseCommon, keyboardTypeProperty,
+    autocapitalizationTypeProperty,
+    autocorrectProperty,
+    Color,
+    editableProperty,
+    EditableTextBase as EditableTextBaseCommon,
+    hintProperty,
+    keyboardTypeProperty,
+    maxLengthProperty,
+    placeholderColorProperty,
+    resetSymbol,
     returnKeyTypeProperty,
-    autocapitalizationTypeProperty, autocorrectProperty, FormattedString
+    textProperty,
+    textTransformProperty
 } from "./editable-text-base-common";
+import NSLabel from "../../../hypers/ns-label";
 
 export * from "./editable-text-base-common";
 
-export abstract class EditableTextBase extends EditableTextBaseCommon {
-    public nativeViewProtected: UITextField | UITextView;
-    public dismissSoftInput() {
-        this.nativeTextViewProtected.resignFirstResponder();
-        this.notify({ eventName: EditableTextBase.blurEvent, object: this });
+export let dismissKeyboardTimeoutId: number;
+export let dismissKeyboardOwner: WeakRef<EditableTextBase>;
+
+let EditTextListeners;
+
+function clearDismissTimer(): void {
+    dismissKeyboardOwner = null;
+    if (dismissKeyboardTimeoutId) {
+        clearTimeout(dismissKeyboardTimeoutId);
+        dismissKeyboardTimeoutId = null;
+    }
+}
+
+function dismissSoftInput(owner: EditableTextBase): void {
+    //clearDismissTimer();
+    //if (!dismissKeyboardTimeoutId) {
+    //    dismissKeyboardTimeoutId = setTimeout(() => {
+    //        const owner = dismissKeyboardOwner && dismissKeyboardOwner.get();
+    //        const nativeView = owner && owner.nativeViewProtected;
+    //        dismissKeyboardTimeoutId = null;
+    //        dismissKeyboardOwner = null;
+    //    }, 10);
+    //}
+}
+
+function initializeEditTextListeners(): void {
+    if (EditTextListeners) {
+        return;
     }
 
-    [keyboardTypeProperty.getDefault](): "datetime" | "phone" | "number" | "url" | "email" | string {
-        let keyboardType = this.nativeTextViewProtected.keyboardType;
-        switch (keyboardType) {
-            case UIKeyboardType.NumbersAndPunctuation:
-                return "number";
-
-            case UIKeyboardType.PhonePad:
-                return "phone";
-
-            case UIKeyboardType.URL:
-                return "url";
-
-            case UIKeyboardType.EmailAddress:
-                return "email";
-
-            default:
-                return keyboardType.toString();
+    class EditTextListenersImpl {
+        constructor(private owner: EditableTextBase) {
         }
-    }
-    [keyboardTypeProperty.setNative](value: "datetime" | "phone" | "number" | "url" | "email" | string) {
-        let newKeyboardType: UIKeyboardType;
-        switch (value) {
-            case "datetime":
-                newKeyboardType = UIKeyboardType.NumbersAndPunctuation;
-                break;
 
-            case "phone":
-                newKeyboardType = UIKeyboardType.PhonePad;
-                break;
+        public beforeTextChanged(text: string, start: number, count: number, after: number): void {
+            //
+        }
 
-            case "number":
-                newKeyboardType = UIKeyboardType.NumbersAndPunctuation;
-                break;
+        public onTextChanged(text: string, start: number, before: number, count: number): void {
+            // const owner = this.owner;
+            // let selectionStart = owner.android.getSelectionStart();
+            // owner.android.removeTextChangedListener(owner._editTextListeners);
+            // owner.android.addTextChangedListener(owner._editTextListeners);
+            // owner.android.setSelection(selectionStart);
+        }
 
-            case "url":
-                newKeyboardType = UIKeyboardType.URL;
-                break
-                ;
-            case "email":
-                newKeyboardType = UIKeyboardType.EmailAddress;
-                break;
+        public afterTextChanged(editable: android.text.Editable): void {
+            const owner = this.owner;
+            if (!owner || owner._changeFromCode) {
+                return;
+            }
 
-            default:
-                let kt = +value;
-                if (!isNaN(kt)) {
-                    newKeyboardType = <UIKeyboardType>kt;
-                } else {
-                    newKeyboardType = UIKeyboardType.Default;
+            switch (owner.updateTextTrigger) {
+                case "focusLost":
+                    owner._dirtyTextAccumulator = editable.toString();
+                    break;
+                case "textChanged":
+                    textProperty.nativeValueChange(owner, editable.toString());
+                    break;
+                default:
+                    throw new Error("Invalid updateTextTrigger: " + owner.updateTextTrigger);
+            }
+        }
+
+        public onFocusChange(view: android.view.View, hasFocus: boolean): void {
+            const owner = this.owner;
+            if (!owner) {
+                return;
+            }
+
+            if (hasFocus) {
+                clearDismissTimer();
+                owner.notify({ eventName: EditableTextBase.focusEvent, object: owner });
+            } else {
+                if (owner._dirtyTextAccumulator || owner._dirtyTextAccumulator === "") {
+                    textProperty.nativeValueChange(owner, owner._dirtyTextAccumulator);
+                    owner._dirtyTextAccumulator = undefined;
                 }
-                break;
+
+                owner.notify({ eventName: EditableTextBase.blurEvent, object: owner });
+                dismissSoftInput(owner);
+            }
         }
 
-        this.nativeTextViewProtected.keyboardType = newKeyboardType;
+        public onEditorAction(textView: android.widget.TextView, actionId: number, event: android.view.KeyEvent): boolean {
+            const owner = this.owner;
+            if (!owner) {
+                return false;
+            }
+
+            if (actionId === android.view.inputmethod.EditorInfo.IME_ACTION_DONE ||
+                actionId === android.view.inputmethod.EditorInfo.IME_ACTION_UNSPECIFIED ||
+                (event && event.getKeyCode() === android.view.KeyEvent.KEYCODE_ENTER)) {
+                // If it is TextField, close the keyboard. If it is TextView, do not close it since the TextView is multiline
+                // https://github.com/NativeScript/NativeScript/issues/3111
+                if (textView.getMaxLines() === 1) {
+                    owner.dismissSoftInput();
+                }
+
+                owner._onReturnPress();
+            } else if (actionId === android.view.inputmethod.EditorInfo.IME_ACTION_NEXT ||
+                actionId === android.view.inputmethod.EditorInfo.IME_ACTION_PREVIOUS) {
+                // do not close keyboard for ACTION_NEXT or ACTION_PREVIOUS
+                owner._onReturnPress();
+            }
+
+            return false;
+        }
+    }
+
+    EditTextListeners = EditTextListenersImpl;
+}
+
+export abstract class EditableTextBase extends EditableTextBaseCommon {
+    /* tslint:disable */
+    _dirtyTextAccumulator: string;
+    /* tslint:enable */
+
+    public nativeViewProtected: NSLabel;
+    private _keyListenerCache;
+    private _inputType: number;
+
+    public _changeFromCode: boolean;
+
+    public abstract _configureEditText(editText): void;
+
+    public _onReturnPress(): void {
+        //
+    }
+
+    createNativeView(): Object {
+        return document.createElement("ns-label");
+    }
+
+    public initNativeView(): void {
+        super.initNativeView();
+        const editText = this.nativeTextViewProtected;
+        //this._configureEditText(editText);
+        //initializeEditTextListeners();
+        //const listeners = new EditTextListeners(this);
+        //editText.addTextChangedListener(listeners);
+        //editText.setOnFocusChangeListener(listeners);
+        //editText.setOnEditorActionListener(listeners);
+        //(<any>editText).listener = listeners;
+        //this._inputType = editText.getInputType();
+    }
+
+    public disposeNativeView(): void {
+        (<any>this.nativeTextViewProtected).listener.owner = null;
+        this._keyListenerCache = null;
+        super.disposeNativeView();
+    }
+
+    public resetNativeView(): void {
+        super.resetNativeView();
+        this.nativeTextViewProtected.setInputType(this._inputType);
+    }
+
+    public onUnloaded() {
+        this.dismissSoftInput();
+        super.onUnloaded();
+    }
+
+    public dismissSoftInput() {
+        const nativeView = this.nativeTextViewProtected;
+        if (!nativeView) {
+            return;
+        }
+
+        nativeView.blur();
+    }
+
+    public focus(): boolean {
+        const nativeView = this.nativeTextViewProtected;
+        if (!nativeView) {
+            return;
+        }
+
+        const result = super.focus();
+        if (result) {
+            nativeView.focus();
+        }
+
+        return result;
+    }
+
+    public _setInputType(inputType: number): void {
+        const nativeView = this.nativeTextViewProtected;
+        try {
+            this._changeFromCode = true;
+            nativeView.setInputType(inputType);
+        } finally {
+            this._changeFromCode = false;
+        }
+
+        // setInputType will change the keyListener so we should cache it again
+        const listener = nativeView.getKeyListener();
+        if (listener) {
+            this._keyListenerCache = listener;
+        }
+
+        // clear the listener if editable is false
+        if (!this.editable) {
+            nativeView.setKeyListener(null);
+        }
+    }
+
+    [textProperty.getDefault](): number | symbol {
+        return resetSymbol;
+    }
+    [textProperty.setNative](value: string | number | symbol) {
+        try {
+            this._changeFromCode = true;
+            this._setNativeText(value === resetSymbol);
+        } finally {
+            this._changeFromCode = false;
+        }
+    }
+
+    [keyboardTypeProperty.getDefault](): number {
+        return this.nativeTextViewProtected.getInputType();
+    }
+    [keyboardTypeProperty.setNative](value: "datetime" | "phone" | "number" | "url" | "email" | number) {
+        //let newInputType;
+        //switch (value) {
+        //    case "datetime":
+        //        newInputType = android.text.InputType.TYPE_CLASS_DATETIME | android.text.InputType.TYPE_DATETIME_VARIATION_NORMAL;
+        //        break;
+        //
+        //    case "phone":
+        //        newInputType = android.text.InputType.TYPE_CLASS_PHONE;
+        //        break;
+        //
+        //    case "number":
+        //        newInputType = android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_VARIATION_NORMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL;
+        //        break;
+        //
+        //    case "url":
+        //        newInputType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_URI;
+        //        break;
+        //
+        //    case "email":
+        //        newInputType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
+        //        break;
+        //
+        //    default:
+        //        newInputType = value;
+        //        break;
+        //}
+        //
+        //this._setInputType(newInputType);
     }
 
     [returnKeyTypeProperty.getDefault](): "done" | "next" | "go" | "search" | "send" | string {
-        let returnKeyType = this.nativeTextViewProtected.returnKeyType;
-        switch (returnKeyType) {
-            case UIReturnKeyType.Done:
-                return "done";
-
-            case UIReturnKeyType.Go:
-                return "go";
-
-            case UIReturnKeyType.Next:
-                return "next";
-
-            case UIReturnKeyType.Search:
-                return "search";
-
-            case UIReturnKeyType.Send:
-                return "send";
-
-            default:
-                return returnKeyType.toString();
-        }
+        //let ime = this.nativeTextViewProtected.getImeOptions();
+        //switch (ime) {
+        //    case android.view.inputmethod.EditorInfo.IME_ACTION_DONE:
+        //        return "done";
+        //
+        //    case android.view.inputmethod.EditorInfo.IME_ACTION_GO:
+        //        return "go";
+        //
+        //    case android.view.inputmethod.EditorInfo.IME_ACTION_NEXT:
+        //        return "next";
+        //
+        //    case android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH:
+        //        return "search";
+        //
+        //    case android.view.inputmethod.EditorInfo.IME_ACTION_SEND:
+        //        return "send";
+        //
+        //    default:
+        //        return ime.toString();
+        //}
     }
     [returnKeyTypeProperty.setNative](value: "done" | "next" | "go" | "search" | "send" | string) {
-        let newValue;
-        switch (value) {
-            case "done":
-                newValue = UIReturnKeyType.Done;
-                break;
-            case "go":
-                newValue = UIReturnKeyType.Go;
-                break;
-            case "next":
-                newValue = UIReturnKeyType.Next;
-                break;
-            case "search":
-                newValue = UIReturnKeyType.Search;
-                break;
-            case "send":
-                newValue = UIReturnKeyType.Send;
-                break;
-            default:
-                let rkt = +value;
-                if (!isNaN(rkt)) {
-                    newValue = <UIKeyboardType>rkt;
-                } else {
-                    newValue = UIKeyboardType.Default;
-                }
-                break;
-        }
-
-        this.nativeTextViewProtected.returnKeyType = newValue;
+        //let newImeOptions;
+        //switch (value) {
+        //    case "done":
+        //        newImeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
+        //        break;
+        //    case "go":
+        //        newImeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_GO;
+        //        break;
+        //    case "next":
+        //        newImeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_NEXT;
+        //        break;
+        //    case "search":
+        //        newImeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
+        //        break;
+        //    case "send":
+        //        newImeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEND;
+        //        break;
+        //    default:
+        //        let ime = +value;
+        //        if (!isNaN(ime)) {
+        //            newImeOptions = ime;
+        //        } else {
+        //            newImeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_UNSPECIFIED;
+        //        }
+        //        break;
+        //}
+        //
+        //this.nativeTextViewProtected.setImeOptions(newImeOptions);
     }
 
-    [autocapitalizationTypeProperty.getDefault](): "none" | "words" | "sentences" | "allcharacters" {
-        let autocapitalizationType = this.nativeTextViewProtected.autocapitalizationType;
-        switch (autocapitalizationType) {
-            case UITextAutocapitalizationType.None:
-                return "none";
-
-            case UITextAutocapitalizationType.Words:
-                return "words";
-
-            case UITextAutocapitalizationType.Sentences:
-                return "sentences";
-
-            case UITextAutocapitalizationType.AllCharacters:
-                return "allcharacters";
-
-            default:
-                throw new Error("Invalid autocapitalizationType value:" + autocapitalizationType);
-        }
-    }
-    [autocapitalizationTypeProperty.setNative](value: "none" | "words" | "sentences" | "allcharacters") {
-        let newValue: UITextAutocapitalizationType;
-        switch (value) {
-            case "none":
-                newValue = UITextAutocapitalizationType.None;
-                break;
-            case "words":
-                newValue = UITextAutocapitalizationType.Words;
-                break;
-            case "sentences":
-                newValue = UITextAutocapitalizationType.Sentences;
-                break;
-            case "allcharacters":
-                newValue = UITextAutocapitalizationType.AllCharacters;
-                break;
-            default:
-                newValue = UITextAutocapitalizationType.Sentences;
-                break;
-        }
-
-        this.nativeTextViewProtected.autocapitalizationType = newValue;
-    }
-
-    [autocorrectProperty.getDefault](): boolean | number {
-        let autocorrectionType = this.nativeTextViewProtected.autocorrectionType;
-        switch (autocorrectionType) {
-            case UITextAutocorrectionType.Yes:
-                return true;
-            case UITextAutocorrectionType.No:
-                return false;
-            case UITextAutocorrectionType.Default:
-                return autocorrectionType;
-        }
-    }
-    [autocorrectProperty.setNative](value: boolean | number) {
-        let newValue: UITextAutocorrectionType;
-        if (typeof value === "number") {
-            newValue = UITextAutocorrectionType.Default;
-        } else if (value) {
-             newValue = UITextAutocorrectionType.Yes;
+    [editableProperty.setNative](value: boolean) {
+        const nativeView = this.nativeTextViewProtected;
+        if (value) {
+            nativeView.setKeyListener(this._keyListenerCache);
         } else {
-            newValue = UITextAutocorrectionType.No;
+            if (!this._keyListenerCache) {
+                this._keyListenerCache = nativeView.getKeyListener();
+            }
+            nativeView.setKeyListener(null);
         }
-
-        this.nativeTextViewProtected.autocorrectionType = newValue;
     }
-}
 
-export function _updateCharactersInRangeReplacementString(formattedText: FormattedString, rangeLocation: number, rangeLength: number, replacementString: string): void {
-    let deletingText = !replacementString;
-    let currentLocation = 0;
-    for (let i = 0, length = formattedText.spans.length; i < length; i++) {
-        let span = formattedText.spans.getItem(i);
-        if (currentLocation <= rangeLocation && rangeLocation < (currentLocation + span.text.length)) {
-            let newText = splice(span.text, rangeLocation - currentLocation, deletingText ? rangeLength : 0, replacementString);
-            span._setTextInternal(newText); 
-            return;
-        } 
-        currentLocation += span.text.length;
+    [autocapitalizationTypeProperty.getDefault](): "none" | "words" | "sentences" | "allcharacters" | string {
+        //let inputType = this.nativeTextViewProtected.getInputType();
+        //if ((inputType & android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS) === android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS) {
+        //    return "words";
+        //} else if ((inputType & android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES) === android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES) {
+        //    return "sentences";
+        //} else if ((inputType & android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) === android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS) {
+        //    return "allcharacters";
+        //} else {
+        //    return inputType.toString();
+        //}
     }
-}
+    [autocapitalizationTypeProperty.setNative](value: string) {
+        //let inputType = this.nativeTextViewProtected.getInputType();
+        //inputType = inputType & ~28672; //28672 (0x00070000) 13,14,15bits (111 0000 0000 0000)
+        //
+        //switch (value) {
+        //    case "none":
+        //        //Do nothing, we have lowered the three bits above.
+        //        break;
+        //    case "words":
+        //        inputType = inputType | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS; //8192 (0x00020000) 14th bit
+        //        break;
+        //    case "sentences":
+        //        inputType = inputType | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES; //16384(0x00040000) 15th bit
+        //        break;
+        //    case "allcharacters":
+        //        inputType = inputType | android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS; //4096 (0x00010000) 13th bit
+        //        break;
+        //    default:
+        //        let number = +value;
+        //        // We set the default value.
+        //        if (!isNaN(number)) {
+        //            inputType = number;
+        //        } else {
+        //            inputType = inputType | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
+        //        }
+        //        break;
+        //}
+        //
+        //this._setInputType(inputType);
+    }
 
-/*
- * @param {String} value The string to splice.
- * @param {number} start Index at which to start changing the string.
- * @param {number} delCount An integer indicating the number of old chars to remove.
- * @param {string} newSubStr The String that is spliced in.
- * @return {string} A new string with the spliced substring.function splice(value: string, start: number, delCount: number, newSubStr: string) {
- */
-function splice(value: string, start: number, delCount: number, newSubStr: string) {
-    return value.slice(0, start) + newSubStr + value.slice(start + Math.abs(delCount));
+    [autocorrectProperty.getDefault](): boolean {
+        //let autocorrect = this.nativeTextViewProtected.getInputType();
+        //if ((autocorrect & android.text.InputType.TYPE_TEXT_FLAG_AUTO_CORRECT) === android.text.InputType.TYPE_TEXT_FLAG_AUTO_CORRECT) {
+        //    return true;
+        //}
+        //
+        //return false;
+    }
+    [autocorrectProperty.setNative](value: boolean) {
+        //let inputType = this.nativeTextViewProtected.getInputType();
+        //switch (value) {
+        //    case true:
+        //        inputType = inputType | android.text.InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
+        //        inputType = inputType | android.text.InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+        //        inputType = inputType & ~android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        //        break;
+        //    case false:
+        //        inputType = inputType & ~android.text.InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
+        //        inputType = inputType & ~android.text.InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+        //        inputType = inputType | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        //        break;
+        //    default:
+        //        // We can't do anything.
+        //        break;
+        //}
+        //
+        //this._setInputType(inputType);
+    }
+
+    [hintProperty.getDefault](): string {
+        return this.nativeTextViewProtected.title;
+    }
+    [hintProperty.setNative](value: string) {
+        this.nativeTextViewProtected.title = (value === null || value === undefined) ? null : value.toString();
+    }
+
+    [placeholderColorProperty.getDefault](): android.content.res.ColorStateList {
+        //return this.nativeTextViewProtected.getHintTextColors();
+    }
+    [placeholderColorProperty.setNative](value: Color | android.content.res.ColorStateList) {
+        //const color = value instanceof Color ? value.android : value;
+        //this.nativeTextViewProtected.setHintTextColor(<any>color);
+    }
+
+    [textTransformProperty.setNative](value: "default") {
+        //
+    }
+
+    [maxLengthProperty.setNative](value: number) {
+        //if (value === Number.POSITIVE_INFINITY) {
+        //    this.nativeTextViewProtected.setFilters([]);
+        //} else {
+        //    const lengthFilter = new android.text.InputFilter.LengthFilter(value);
+        //    const filters = this.nativeTextViewProtected.getFilters();
+        //    const newFilters = [];
+        //
+        //    // retain existing filters
+        //    for (let i = 0; i < filters.length; i++) {
+        //        const filter = filters[i];
+        //        if (!(filter instanceof android.text.InputFilter.LengthFilter)) {
+        //            newFilters.push(filter);
+        //        }
+        //    }
+        //
+        //    newFilters.push(lengthFilter);
+        //    this.nativeTextViewProtected.setFilters(newFilters);
+        //}
+    }
 }

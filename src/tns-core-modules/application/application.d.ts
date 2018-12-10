@@ -61,6 +61,11 @@ export interface ApplicationEventData extends EventData {
     android?: any;
 
     /**
+     * Gets the native Android event arguments. Valid only when running on Android.
+     */
+    web?: any;
+
+    /**
      * The name of the event.
      */
     eventName: string;
@@ -100,6 +105,7 @@ export interface OrientationChangedEventData extends ApplicationEventData {
 export interface UnhandledErrorEventData extends ApplicationEventData {
     ios?: NativeScriptError;
     android?: NativeScriptError;
+    web?: NativeScriptError;
     error: NativeScriptError;
 }
 
@@ -590,6 +596,8 @@ export class WebApplication extends Observable {
      * The [UIApplication](https://developer.apple.com/library/ios/documentation/UIKit/Reference/UIApplication_Class/index.html).
      */
     nativeApp: any /* UIApplication */;
+
+    static generateViewId(): any;
 }
 
 /* tslint:disable */

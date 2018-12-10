@@ -4,29 +4,47 @@
 } from "./grid-layout-common";
 
 import NSGridLayout from "../../../../hypers/ns-grid-layout";
+import {ItemSpec} from "~/tns-core-modules/ui/layouts/grid-layout/grid-layout.android";
 
 export * from "./grid-layout-common";
 
 export class GridLayout extends GridLayoutBase {
-
     nativeViewProtected: NSGridLayout;
+    gridLayout;
 
     createNativeView() {
         return document.createElement("ns-grid-layout");
     }
 
-    set rows(value: string) {
-        setTimeout(() => {
-            if (this.nativeViewProtected) {
-                this.nativeViewProtected.rows = value;
-            }
-        });
+    onLoaded(): void {
+        super.onLoaded();
+
+        this.nativeViewProtected.style["grid-template-areas"] = `"${this.gridLayout.map(_ => _.join(" ")).join('"\n"')}"`;
     }
 
-    set columns(value: string) {
-        setTimeout(() => {
-            if (this.nativeViewProtected) {
-                this.nativeViewProtected.columns = value;
+    _registerLayoutChild(view: View) {
+        super._registerLayoutChild(view);
+
+        view.once("loaded",() => {
+            const nv = view.nativeViewProtected;
+            const cellArea = `r${view.row}-c${view.col}`;
+
+            nv.col = view.col;
+            nv.row = view.row;
+
+            view.colSpan > 1 && (nv.colspan = view.colSpan);
+            view.rowSpan > 1 && (nv.rowspan = view.rowSpan);
+
+            nv.style.gridArea = cellArea;
+
+            if (!this.gridLayout) {
+                this.gridLayout = [...Array(this.getRows().length)].map(() => Array(this.getColumns().length));
+            }
+
+            for (let row = 0; row < view.rowSpan; row++) {
+                for (let col = 0; col < view.colSpan; col++) {
+                    this.gridLayout[view.row + row][view.col + col] = cellArea;
+                }
             }
         });
     }

@@ -11,3 +11,5 @@ export class WeakRef {
         delete this._target;
     }
 }
+
+global.WeakRef = WeakRef;

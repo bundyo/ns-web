@@ -11,9 +11,11 @@ export default class NSButton extends NSElement {
     }
 
     render() {
-        return this.html`
+        return this.text
+            ? this.html`
         <i class="${this.state.iconClass}"></i>
-        <span>${this.text}</span>`;
+        <span>${this.text}</span>`
+            : this.html;
     }
 
     onclick(e) {}

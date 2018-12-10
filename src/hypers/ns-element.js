@@ -3,7 +3,12 @@ import HyperHTMLElement from 'hyperhtml-element';
 export default class NSElement extends HyperHTMLElement {
 
     // observed attributes are automatically defined as accessors
-    static get observedAttributes() { return ["color", "left", "right", "top", "bottom", "width", "height", "margin", "padding", "background-color", "row", "col", "rowspan", "colspan"]; }
+    static get observedAttributes() {
+        return [
+            "color", "left", "right", "top", "bottom", "width", "height", "margin", "padding", "background-color", "row", "col",
+            "rowspan", "colspan", "class", "id"
+        ];
+    }
 
     // boolean attributes are automatically defined as accessors
     // and will set or remove the passed value
@@ -18,8 +23,6 @@ export default class NSElement extends HyperHTMLElement {
         //this.key = 'value';
         this.uId = this.uniqId();
 
-        this.classList.add(`-${this.uId}`);
-
         this.render();
     }
 
@@ -30,6 +33,9 @@ export default class NSElement extends HyperHTMLElement {
         //this.getAttribute('key') === this.key; // always true
         Object.assign(this.style, this.state.styles);
 
+        this.classList.add(`-${this.uId}`);
+        this.classList.add("ns-element");
+
         this.render();
     }
 
@@ -38,6 +44,7 @@ export default class NSElement extends HyperHTMLElement {
         // which could be the element shadowRoot or the element itself.
         // All events can be handled directly by the context, thanks to handleEvent
         // https://medium.com/@WebReflection/dom-handleevent-a-cross-platform-standard-since-year-2000-5bf17287fd38
+
         return this.html;
     }
 
@@ -74,7 +81,9 @@ export default class NSElement extends HyperHTMLElement {
                 : v.nodeValue);
         });
 
-        return { styles };
+        return {
+            styles
+        };
     }
 
     uniqId() {

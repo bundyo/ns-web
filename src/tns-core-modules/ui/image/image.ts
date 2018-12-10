@@ -123,21 +123,7 @@ export class Image extends ImageBase {
     }
 
     [stretchProperty.setNative](value: "none" | "aspectFill" | "aspectFit" | "fill") {
-        switch (value) {
-            case "fill":
-            case "aspectFit":
-                this.nativeViewProtected.style.backgroundSize = "contain";
-                break;
-
-            case "aspectFill":
-                this.nativeViewProtected.style.backgroundSize = "cover";
-                break;
-
-            case "none":
-            default:
-                this.nativeViewProtected.style.backgroundSize = "";
-                break;
-        }
+        this.nativeViewProtected.stretch = value.toLowerCase();
     }
 
     [tintColorProperty.setNative](value: Color) {

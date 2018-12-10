@@ -1,15 +1,40 @@
-var dashRegExp = /-(.)/g,
+const dashRegExp = /-(.)/g,
     dashCapitalRegExp = /([a-z\d])([A-Z])/g;
 
-function forEach(callback, thisArg) {
-    var index,
-        that = this,
-        isArray = that.length,
-        collection = isArray ? that : Object.getOwnPropertyNames(that),
-        len = collection.length;
+export function matches(element, query) {
+    if (!element) {
+        return true;
+    }
 
-    for (var i = 0; i < len; i++) {
-        index = isArray ? i : collection[i];
+    const matches = (element.matches || element.webkitMatchesSelector || element.msMatchesSelector);
+
+    return matches ? matches.call(element, query) : true;
+}
+
+export function childOf(element, query) {
+    while (!matches(element.parentElement, query)) {
+        element = element.parentElement;
+    }
+
+    return element;
+}
+
+export function index(element) {
+    if (element && element.parentElement) {
+        return Array.from(element.parentElement.children).indexOf(element);
+    }
+
+    return -1;
+}
+
+export function forEach(callback, thisArg) {
+    const that = this,
+          isArray = that.length,
+          collection = isArray ? that : Object.getOwnPropertyNames(that),
+          len = collection.length;
+
+    for (let i = 0; i < len; i++) {
+        let index = isArray ? i : collection[i];
 
         if ((that instanceof NodeList && that.length && that[index]) ||
             (!(that instanceof NodeList) && that[index] !== undefined && that[index] !== null)) {
@@ -20,7 +45,7 @@ function forEach(callback, thisArg) {
     return this;
 }
 
-var expr = function(expression) {
+const expr = function(expression) {
     expression = expression || "";
 
     if (expression && expression.charAt(0) !== "[") {
@@ -32,12 +57,12 @@ var expr = function(expression) {
     return expression;
 };
 
-function createFunction (expression) {
+export function createFunction (expression) {
     new Function("d", "return " + expr(expression));
 }
 
-function tryCatch(aargh, yeeah) {
-    var rest = Array.prototype.slice.call(arguments, 2);
+export function tryCatch(aargh, yeeah) {
+    const rest = Array.prototype.slice.call(arguments, 2);
 
     try {
         aargh.call(this, rest[0], rest[1], rest[2]);
@@ -48,18 +73,18 @@ function tryCatch(aargh, yeeah) {
     }
 }
 
-function dashCase(str) {
+export function dashCase(str) {
     return str.replace(dashCapitalRegExp, '$1-$2').replace(/\./g, "-").toLowerCase();
 }
 
-function camelCase(str) {
+export function camelCase(str) {
     return str.toLowerCase().replace(dashRegExp, function (m, g1) {
         return g1.toUpperCase();
     });
 }
 
-function extend(deep) {
-    var output,
+export function extend(deep) {
+    let output,
         i = 1;
 
     if (typeof arguments[0] === 'boolean') {
@@ -70,8 +95,8 @@ function extend(deep) {
         output = arguments[0];
     }
 
-    var merge = function (obj) {
-        for (var prop in obj) {
+    const merge = function (obj) {
+        for (const prop in obj) {
             if (deep && typeof obj[prop] === 'object') {
                 output[prop] = extend(true, output[prop] || {}, obj[prop]);
             } else {
@@ -83,28 +108,27 @@ function extend(deep) {
     };
 
     for (; i < arguments.length; i++) {
-        var obj = arguments[i];
+        const obj = arguments[i];
         merge(obj);
     }
 
     return output;
 }
 
-function Class() {}
+export function Class() {}
 
 Class.extend = function(proto) {
-    var base = function() {},
-        member,
-        that = this,
-        subclass = proto && proto.init ? proto.init : function () {
-            that.apply(this, arguments);
-        },
-        fn;
+    const base = function() {},
+          that = this,
+          subclass = proto && proto.init ? proto.init : function () {
+              that.apply(this, arguments);
+          };
 
     base.prototype = that.prototype;
-    fn = subclass.fn = subclass.prototype = new base();
 
-    for (member in proto) {
+    const fn = subclass.fn = subclass.prototype = new base();
+
+    for (let member in proto) {
         if (proto[member] != null && proto[member].constructor === Object) {
             fn[member] = extend(true, {}, base.prototype[member], proto[member]);
         } else {
@@ -118,16 +142,17 @@ Class.extend = function(proto) {
     return subclass;
 };
 
-var DOMParser = window.DOMParser,
-    DOMParser_proto = DOMParser.prototype,
-    real_parseFromString = DOMParser_proto.parseFromString;
+let DOMParser = window.DOMParser;
+
+const DOMParser_proto = DOMParser.prototype,
+      real_parseFromString = DOMParser_proto.parseFromString;
 
 tryCatch.call(this, function () {
     (new DOMParser).parseFromString("", "text/html");
 }, function (ex) {
     DOMParser_proto.parseFromString = function (markup, type) {
         if (/^\s*text\/html\s*(?:;|$)/i.test(type)) {
-            var doc = document.implementation.createHTMLDocument("");
+            const doc = document.implementation.createHTMLDocument("");
 
             doc.documentElement.innerHTML = markup;
 
@@ -140,8 +165,10 @@ tryCatch.call(this, function () {
 
 DOMParser = new DOMParser;
 
-function parseHTML(input) {
-     var fragment = document.createDocumentFragment(),
+export const parseDOMFromString = DOMParser.parseFromString.bind(DOMParser);
+
+export function parseHTML(input) {
+     const fragment = document.createDocumentFragment(),
          div = document.createElement("div");
 
      div.innerHTML = input;
@@ -149,15 +176,3 @@ function parseHTML(input) {
 
      return fragment.childNodes[0].childNodes;
 }
-
-module.exports = {
-    forEach: forEach,
-    extend: extend,
-    Class: Class,
-    parseDOMFromString: DOMParser.parseFromString.bind(DOMParser),
-    tryCatch: tryCatch,
-    dashCase: dashCase,
-    camelCase: camelCase,
-    parseHTML: parseHTML,
-    createFunction: createFunction
-};

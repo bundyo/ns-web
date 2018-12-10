@@ -152,6 +152,8 @@ export interface ItemEventData extends EventData {
      */
     view: View;
 
+    web: any;
+
     /**
      * Gets the native [iOS view](https://developer.apple.com/library/ios/documentation/UIKit/Reference/UITableViewCell_Class/) that represents the user interface where the view is hosted. Valid only when running on iOS.
      */

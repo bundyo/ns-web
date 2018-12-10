@@ -59,7 +59,7 @@ export class ActionItem extends ActionItemBase {
         return this._web;
     }
     public set web(value: Object) {
-        throw new Error("ActionItem.settings is read-only");
+        this._web = value;
     }
 
     public _getItemId() {
@@ -97,8 +97,7 @@ export class WebActionBarSettings {
     }
 }
 
-export class NavigationButton extends ActionItem {
-}
+export class NavigationButton extends ActionItem {}
 
 export class ActionBar extends ActionBarBase {
     private _web: WebActionBarSettings;
@@ -166,7 +165,7 @@ export class ActionBar extends ActionBarBase {
     public _updateNavigationButton() {
         const navButton = this.navigationButton;
         if (navButton && isVisible(navButton)) {
-            const systemIcon = navButton["web"].systemIcon;
+            //const systemIcon = navButton["web"].systemIcon;
             // if (systemIcon !== undefined) {
             //     // Try to look in the system resources.
             //     const systemResourceId = getSystemResourceId(systemIcon);
@@ -180,15 +179,16 @@ export class ActionBar extends ActionBarBase {
             // }
 
             // Set navigation content descripion, used by screen readers for the vision-impaired users
-            this.nativeViewProtected.text = navButton.text || null;
+            navButton.nativeViewProtected.position = "left";
+            navButton.nativeViewProtected.text = navButton.text || null;
 
-            let navBtn = new WeakRef(navButton);
             this.nativeViewProtected.onclick = function (v) {
-                let owner = navBtn.get();
-                if (owner) {
-                    owner._raiseTap();
+                if (navButton) {
+                    navButton._raiseTap();
                 }
             };
+
+            this.nativeViewProtected.append(navButton.nativeViewProtected);
         }
         else {
             //this.nativeViewProtected.setNavigationIcon(null);
@@ -234,18 +234,70 @@ export class ActionBar extends ActionBarBase {
         // }
     }
 
+    //public _addActionItems() {
+    //    let menu = this.nativeViewProtected.getMenu();
+    //    let items = this.actionItems.getVisibleItems();
+    //
+    //    menu.clear();
+    //    for (let i = 0; i < items.length; i++) {
+    //        let item = <ActionItem>items[i];
+    //        let menuItem = menu.add(android.view.Menu.NONE, item._getItemId(), android.view.Menu.NONE, item.text + "");
+    //
+    //        if (item.actionView && item.actionView.android) {
+    //            // With custom action view, the menuitem cannot be displayed in a popup menu.
+    //            item.android.position = "actionBar";
+    //            menuItem.setActionView(item.actionView.android);
+    //            ActionBar._setOnClickListener(item);
+    //        }
+    //        else if (item.android.systemIcon) {
+    //            // Try to look in the system resources.
+    //            let systemResourceId = getSystemResourceId(item.android.systemIcon);
+    //            if (systemResourceId) {
+    //                menuItem.setIcon(systemResourceId);
+    //            }
+    //        }
+    //        else if (item.icon) {
+    //            let drawableOrId = getDrawableOrResourceId(item.icon, appResources);
+    //            if (drawableOrId) {
+    //                menuItem.setIcon(drawableOrId);
+    //            }
+    //            else {
+    //                throw new Error("Error loading icon from " + item.icon);
+    //            }
+    //        }
+    //
+    //        let showAsAction = getShowAsAction(item);
+    //        menuItem.setShowAsAction(showAsAction);
+    //    }
+    //}
+    //
+    //private static _setOnClickListener(item: ActionItem): void {
+    //    const weakRef = new WeakRef(item);
+    //    item.actionView.android.setOnClickListener(new android.view.View.OnClickListener({
+    //        onClick: function (v: android.view.View) {
+    //            const owner = weakRef.get();
+    //            if (owner) {
+    //                owner._raiseTap();
+    //            }
+    //        }
+    //    }));
+    //}
     public _addActionItems() {
         let items = this.actionItems.getVisibleItems();
 
-        this.nativeViewProtected.innerHTML = "";
+        //this.nativeViewProtected.innerHTML = "";
 
         for (let i = 0; i < items.length; i++) {
             let item = <ActionItem>items[i];
 
-            item.nativeViewProtected["text"] = item.text + "";
+            if (item.actionView) {
+                item.nativeViewProtected.append(item.actionView.nativeViewProtected);
+            } else {
+                item.nativeViewProtected["text"] = item.text + "";
 
-            if (item.icon) {
-                item.nativeViewProtected["icon"] = item.icon;
+                if (item.icon) {
+                    item.nativeViewProtected["icon"] = item.icon;
+                }
             }
 
             if (item.web["position"] === "left") {
