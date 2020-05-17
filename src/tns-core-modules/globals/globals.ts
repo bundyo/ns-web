@@ -1,7 +1,7 @@
 ﻿// Required by TypeScript compiler
 require("./decorators");
 
-const context: any = require.context("../../../app", true, /\.(js|css|xml|html)$/i);
+const context: any = require.context("../../../vueapp", true, /\.(js|css|xml|html|vue)$/i);
 global.context = context;
 
 // Required by V8 snapshot generator
